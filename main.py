@@ -21,7 +21,10 @@ try:
     from typing import Optional
 except ImportError:
     pass
+from io import StringIO
 import urequests
+import time
+import sys
 
 from smartdisplay import BouncingBalls, Clock, Sonos
 
@@ -65,7 +68,7 @@ def main():
     ticks = i75.ticks_ms()
     screen = get_next_screen("first")
     screen_obj = get_screen_obj(i75, screen)
-
+    raise ValueError()
     while True:
         new_ticks = i75.ticks_ms()
         frame_time = i75.ticks_diff(new_ticks, ticks)
@@ -87,5 +90,18 @@ def main():
             screen_obj = get_screen_obj(i75, screen)
 
 
+def main_safe():
+    while True:
+        try:
+            main()
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            s = StringIO()
+            sys.print_exception(e, s)
+            urequests.post(f"http://{BACKEND}:6001/error", data=s.getvalue())
+            time.sleep_ms(1000)
+
+
 if __name__ == "__main__":
-    main()
+    main_safe()
