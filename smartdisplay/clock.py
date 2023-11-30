@@ -137,4 +137,4 @@ class Clock:
         i75.display.update()
 
         self.total_time += frame_time
-        return self.total_time >= 15000
+        return self.total_time >= 30000
