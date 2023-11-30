@@ -28,7 +28,7 @@ import sys
 
 from smartdisplay import BouncingBalls, Clock, Sonos
 
-BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.4"
+BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
 
 def get_next_screen(current: str) -> str:
@@ -51,6 +51,8 @@ def get_screen_obj(i75: I75, screen_name: str):
     if screen_name == "balls":
         if BALLS is None:
             BALLS = BouncingBalls(i75)
+        else:
+            BALLS.reset_timer()
         return BALLS
     return Clock(i75)
 
@@ -68,7 +70,9 @@ def main():
     ticks = i75.ticks_ms()
     screen = get_next_screen("first")
     screen_obj = get_screen_obj(i75, screen)
-    raise ValueError()
+
+    black = i75.display.create_pen(0, 0, 0)
+
     while True:
         new_ticks = i75.ticks_ms()
         frame_time = i75.ticks_diff(new_ticks, ticks)
@@ -88,6 +92,9 @@ def main():
 
             screen = get_next_screen(screen)
             screen_obj = get_screen_obj(i75, screen)
+
+            i75.display.set_pen(black)
+            i75.display.fill(0, 0, 64, 64)
 
 
 def main_safe():
