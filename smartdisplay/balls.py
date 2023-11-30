@@ -195,20 +195,23 @@ class BouncingBalls:
                       generate_ball(i75, 3, Vector(20, 10)),
                       generate_ball(i75, 5, Vector(40, 10))]
 
+        self.fixed_update_time = 50
+        self.frame_time = 0
         self.total_time = 0
         self.new_balls_time = 0
 
     def render(self, i75: I75, frame_time: int) -> bool:
-        while frame_time > 100:
+        self.frame_time += frame_time
+        while self.frame_time > self.fixed_update_time:
             for ball in self.balls:
                 ball.render(i75, self.black)
-                ball.update(frame_time)
+                ball.update(self.fixed_update_time)
 
             for i in range(len(self.balls) - 1):
                 for j in range(i+1, len(self.balls)):
                     self.balls[i].collide(self.balls[j])
 
-            frame_time -= 100
+            self.frame_time -= self.fixed_update_time
 
         for ball in self.balls:
             ball.render(i75)
@@ -217,18 +220,21 @@ class BouncingBalls:
 
         while self.new_balls_time > 5000:
             [b.render(i75, self.black) for b in self.balls]
-            balls = [b for b in self.balls if b.resize()]
+            self.balls = [b for b in self.balls if b.resize()]
 
-            if len(balls) < 5 and random.random() < 0.2:
-                balls.append(
+            if len(self.balls) < 5 and random.random() < 0.2:
+                self.balls.append(
                     generate_ball(i75,
                                   2,
                                   Vector(int(random.random() * 59) + 5,
                                          int(random.random() * 59) + 5)))
-            [b.render(i75) for b in balls]
+            [b.render(i75) for b in self.balls]
             self.new_balls_time -= 5000
 
         i75.display.update()
 
         self.total_time += frame_time
         return self.total_time >= 30000
+
+    def reset_timer(self) -> None:
+        self.total_time = 0
