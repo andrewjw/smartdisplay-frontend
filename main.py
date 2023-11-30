@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import gc
 import picographics
 from i75 import Colour, I75
 try:
@@ -62,8 +63,12 @@ def main():
         display_type=picographics.DISPLAY_INTERSTATE75_64X64,
         rotate=0 if I75.is_emulated() else 90)
 
-    i75.enable_wifi()
-    i75.set_time()
+    while not i75.enable_wifi():
+        log_error("Failed to enable wifi.\n")
+        time.sleep_ms(1000)
+    while not i75.set_time():
+        log_error("Failed to set time.\n")
+        time.sleep_ms(1000)
 
     next_ntp = i75.now().hour + 23
 
@@ -93,6 +98,9 @@ def main():
             screen = get_next_screen(screen)
             screen_obj = get_screen_obj(i75, screen)
 
+            gc.collect()
+            log_error(f"Free memory: {gc.mem_free()}\n")
+
             i75.display.set_pen(black)
             i75.display.fill(0, 0, 64, 64)
 
@@ -106,8 +114,19 @@ def main_safe():
         except Exception as e:
             s = StringIO()
             sys.print_exception(e, s)
-            urequests.post(f"http://{BACKEND}:6001/error", data=s.getvalue())
+            s.seek(0)
+            log_error(s.read())
             time.sleep_ms(1000)
+        except:  # noqa
+            log_error("Unknown exception...")
+            time.sleep_ms(1000)
+
+
+def log_error(error: str) -> None:
+    try:
+        r = urequests.post(f"http://{BACKEND}:6001/error", data=error)
+    finally:
+        r.close()
 
 
 if __name__ == "__main__":
