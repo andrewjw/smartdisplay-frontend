@@ -37,10 +37,8 @@ class Sonos:
 
         r = urequests.get(f"http://{self.backend}:6001/sonos/art")
         try:
-            print(len(r.content))
             for y in range(64):
                 for x in range(64):
-                    print(x, y)
                     Colour.fromint32(r.content[(y * 64 + x) * 3] << 24
                                      | r.content[(y * 64 + x) * 3 + 1] << 16
                                      | r.content[(y * 64 + x) * 3 + 2] << 8
