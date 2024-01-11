@@ -18,3 +18,4 @@
 from .balls import BouncingBalls
 from .clock import Clock
 from .sonos import Sonos
+from .trains import Trains

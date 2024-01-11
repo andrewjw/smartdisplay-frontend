@@ -27,7 +27,7 @@ import urequests
 import time
 import sys
 
-from smartdisplay import BouncingBalls, Clock, Sonos
+from smartdisplay import BouncingBalls, Clock, Sonos, Trains
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
@@ -55,6 +55,10 @@ def get_screen_obj(i75: I75, screen_name: str):
         else:
             BALLS.reset_timer()
         return BALLS
+    if screen_name == "trains_to_london":
+        return Trains(BACKEND, True)
+    if screen_name == "trains_home":
+        return Trains(BACKEND, False)
     return Clock(i75)
 
 
@@ -99,7 +103,7 @@ def main():
             screen_obj = get_screen_obj(i75, screen)
 
             gc.collect()
-            log_error(f"Free memory: {gc.mem_free()}\n")
+            log(f"Free memory: {gc.mem_free()}\n")
 
             i75.display.set_pen(black)
             i75.display.fill(0, 0, 64, 64)
@@ -122,11 +126,22 @@ def main_safe():
             time.sleep_ms(1000)
 
 
+def log(msg: str) -> None:
+    r = None
+    try:
+        r = urequests.post(f"http://{BACKEND}:6001/log", data=msg)
+    finally:
+        if r is not None:
+            r.close()
+
+
 def log_error(error: str) -> None:
+    r = None
     try:
         r = urequests.post(f"http://{BACKEND}:6001/error", data=error)
     finally:
-        r.close()
+        if r is not None:
+            r.close()
 
 
 if __name__ == "__main__":
