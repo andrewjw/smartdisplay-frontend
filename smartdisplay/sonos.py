@@ -60,40 +60,56 @@ class Sonos:
     def render_track_details(self, i75: I75) -> bool:
         self.rendered_text = True
 
-        y = 63
+        y = 64
         if self.track_info is None:
             return False
-        if self.track_info["artist"] is not None:
+        has_artist = self.track_info["artist"] is not None and len(self.track_info["artist"]) > 0
+        has_album= self.track_info["album"] is not None and len(self.track_info["album"]) > 0
+        has_track = self.track_info["track"] is not None and len(self.track_info["track"]) > 0
+        if has_artist:
             y = self.render_text(i75, y, self.track_info["artist"])
-        if self.track_info["album"] is not None:
+        if has_artist and has_album:
+            y = self.render_line(i75, y)
+        if has_album:
             y = self.render_text(i75, y, self.track_info["album"])
-        if self.track_info["track"] is not None:
+        if has_track and (has_artist or has_album):
+            y = self.render_line(i75, y)
+        if has_track:
             y = self.render_text(i75, y, self.track_info["track"])
         
         i75.display.update()
 
         return False
 
-
     def render_text(self, i75: I75, y: int, text: str) -> int:
         text = wrap_text(FONT, text, 62)
         width, height = text_boundingbox(FONT, text)
 
+        self.fade_image(i75, y - height - 1, y)
+
+        i75.display.set_pen(i75.display.create_pen(255, 255, 255))
+
+        render_text(i75.display, FONT, 1, y - height, text)
+
+        return y - height
+
+    def render_line(self, i75: I75, y: int) -> int:
+        self.fade_image(i75, y - 3, y)
+
+        i75.display.set_pen(i75.display.create_pen(100, 100, 100))
+        i75.display.line(5, y - 2, 64 - 5, y - 2)
+
+        return y - 2
+
+    def fade_image(self, i75: I75, y1: int, y2: int) -> None:
         assert self.image is not None
-        for py in range(y - height - 1, y):
+        for py in range(max(0, y1), min(y2, 64)):
             for px in range(64):
                 Colour.fromint32(round(0.5 * self.image[(py * 64 + px) * 3]) << 24
                                     | round(0.5 * self.image[(py * 64 + px) * 3 + 1]) << 16
                                     | round(0.5 * self.image[(py * 64 + px) * 3 + 2]) << 8
                                     | 255).set_colour(i75)
                 i75.display.pixel(px, py)
-
-        i75.display.set_pen(i75.display.create_pen(255, 255, 255))
-
-        render_text(i75.display, FONT, 1, y - height, text)
-
-        return y - height - 1
-
 
     def render(self, i75: I75, frame_time: int) -> bool:
         self.total_time += frame_time
