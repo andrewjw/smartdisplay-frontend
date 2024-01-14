@@ -28,15 +28,15 @@ class Trains:
         img = Image.load(open(TRAIN_TO_LONDON_FILE if self.departures else TRAIN_HOME_FILE, "rb"))
         img.render(i75.display, 0, 0)
 
-        white = i75.display.create_pen(255, 255, 255)
-        red = i75.display.create_pen(255, 0, 0)
-        green = i75.display.create_pen(0, 255, 0)
+        white = i75.display.create_pen(240, 240, 240)
+        red = i75.display.create_pen(240, 0, 0)
+        green = i75.display.create_pen(0, 240, 0)
         i75.display.set_pen(white)
 
         i, y = 0, 8
 
         if self.msg is not None and len(self.msg) > 0:
-            self.msg = wrap_text(FONT, self.msg, 63)
+            self.msg = wrap_text(FONT, self.msg, 62)
             _, height = text_boundingbox(FONT, self.msg)
             render_text(i75.display, FONT, 1, y, self.msg)
             y += height
