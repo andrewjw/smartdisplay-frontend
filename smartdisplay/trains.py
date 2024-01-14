@@ -1,4 +1,4 @@
-from i75 import I75, Image, render_text, text_boundingbox
+from i75 import I75, Image, render_text, text_boundingbox, wrap_text
 import urequests
 
 FONT = "cg_pixel_3x5_5"
@@ -36,6 +36,7 @@ class Trains:
         i, y = 0, 8
 
         if self.msg is not None and len(self.msg) > 0:
+            self.msg = wrap_text(FONT, self.msg, 63)
             _, height = text_boundingbox(FONT, self.msg)
             render_text(i75.display, FONT, 1, y, self.msg)
             y += height
