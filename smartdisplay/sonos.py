@@ -20,6 +20,7 @@ import urequests
 
 FONT = "cg_pixel_3x5_5"
 
+
 class Sonos:
     def __init__(self, backend: str) -> None:
         self.backend = backend
@@ -63,9 +64,13 @@ class Sonos:
         y = 64
         if self.track_info is None:
             return False
-        has_artist = self.track_info["artist"] is not None and len(self.track_info["artist"]) > 0
-        has_album= self.track_info["album"] is not None and len(self.track_info["album"]) > 0
-        has_track = self.track_info["track"] is not None and len(self.track_info["track"]) > 0
+
+        def has_param(p: str) -> bool:
+            self.track_info[p] is not None and len(self.track_info[p]) > 0
+
+        has_artist = has_param("artist")
+        has_album = has_param("album")
+        has_track = has_param("track")
         if has_artist:
             y = self.render_text(i75, y, self.track_info["artist"])
         if has_artist and has_album:
@@ -76,7 +81,7 @@ class Sonos:
             y = self.render_line(i75, y)
         if has_track:
             y = self.render_text(i75, y, self.track_info["track"])
-        
+
         i75.display.update()
 
         return False
@@ -105,10 +110,11 @@ class Sonos:
         assert self.image is not None
         for py in range(max(0, y1), min(y2, 64)):
             for px in range(64):
-                Colour.fromint32(round(0.5 * self.image[(py * 64 + px) * 3]) << 24
-                                    | round(0.5 * self.image[(py * 64 + px) * 3 + 1]) << 16
-                                    | round(0.5 * self.image[(py * 64 + px) * 3 + 2]) << 8
-                                    | 255).set_colour(i75)
+                Colour.fromint32(
+                    round(0.5 * self.image[(py * 64 + px) * 3]) << 24
+                    | round(0.5 * self.image[(py * 64 + px) * 3 + 1]) << 16
+                    | round(0.5 * self.image[(py * 64 + px) * 3 + 2]) << 8
+                    | 255).set_colour(i75)
                 i75.display.pixel(px, py)
 
     def render(self, i75: I75, frame_time: int) -> bool:

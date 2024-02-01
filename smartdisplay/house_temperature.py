@@ -28,11 +28,16 @@ FONT = "cg_pixel_3x5_5"
 
 TITLE = "House Temps"
 
+
 class Room:
-    def __init__(self, title: str, index: str, limit: Tuple[int, int, int]) -> None:
+    def __init__(self,
+                 title: str,
+                 index: str,
+                 limit: Tuple[int, int, int]) -> None:
         self.title = title
         self.index = index
         self.limit = limit
+
 
 ROOMS = [
     Room("Main:", "mainbedroom", (19, 22, 25)),
@@ -43,6 +48,7 @@ ROOMS = [
     Room("Office:", "office", (19, 22, 25)),
     Room("Outside:", "outside", (2, 24, 28)),
 ]
+
 
 class HouseTemperature:
     def __init__(self, backend: str) -> None:
@@ -68,16 +74,25 @@ class HouseTemperature:
 
         i75.display.set_pen(white)
 
-        room_widths = {room.index: text_boundingbox(FONT, room.title)[0] for room in ROOMS}
+        room_widths = {room.index: text_boundingbox(FONT, room.title)[0]
+                       for room in ROOMS}
         max_room_widths = max([v for v in room_widths.values()]) + 1
 
         title_width, font_height = text_boundingbox(FONT, TITLE)
-        render_text(i75.display, FONT, math.floor(32 - title_width / 2), 1,  "House Temps")
+        render_text(i75.display,
+                    FONT,
+                    math.floor(32 - title_width / 2),
+                    1,
+                    "House Temps")
 
         y = font_height + 3
         for room in ROOMS:
             i75.display.set_pen(white)
-            render_text(i75.display, FONT, max_room_widths - room_widths[room.index], y, room.title)
+            render_text(i75.display,
+                        FONT,
+                        max_room_widths - room_widths[room.index],
+                        y,
+                        room.title)
 
             temp = self.data[room.index]
             if temp < room.limit[0]:
@@ -97,7 +112,11 @@ class HouseTemperature:
                 i75.display.pixel(max_room_widths + temp_width, y + i)
                 i75.display.pixel(max_room_widths + temp_width + 2, y + 2 - i)
 
-            render_text(i75.display, FONT, max_room_widths + temp_width + 4, y, "C")
+            render_text(i75.display,
+                        FONT,
+                        max_room_widths + temp_width + 4,
+                        y,
+                        "C")
 
             y += font_height + 2
 
