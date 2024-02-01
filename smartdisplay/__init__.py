@@ -17,5 +17,6 @@
 
 from .balls import BouncingBalls
 from .clock import Clock
+from .house_temperature import HouseTemperature
 from .sonos import Sonos
 from .trains import Trains

@@ -27,7 +27,7 @@ import urequests
 import time
 import sys
 
-from smartdisplay import BouncingBalls, Clock, Sonos, Trains
+from smartdisplay import BouncingBalls, Clock, HouseTemperature, Sonos, Trains
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
@@ -59,6 +59,8 @@ def get_screen_obj(i75: I75, screen_name: str):
         return Trains(BACKEND, True)
     if screen_name == "trains_home":
         return Trains(BACKEND, False)
+    if screen_name == "house_temperature":
+        return HouseTemperature(BACKEND)
     return Clock(i75)
 
 
