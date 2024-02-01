@@ -72,9 +72,9 @@ class HouseTemperature:
         max_room_widths = max([v for v in room_widths.values()]) + 1
 
         title_width, font_height = text_boundingbox(FONT, TITLE)
-        render_text(i75.display, FONT, math.floor(32 - title_width / 2), 0,  "House Temps")
+        render_text(i75.display, FONT, math.floor(32 - title_width / 2), 1,  "House Temps")
 
-        y = font_height + 2
+        y = font_height + 3
         for room in ROOMS:
             i75.display.set_pen(white)
             render_text(i75.display, FONT, max_room_widths - room_widths[room.index], y, room.title)
