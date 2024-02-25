@@ -117,6 +117,8 @@ def main_safe():
             main()
         except KeyboardInterrupt:
             break
+        except MemoryError:
+            sys.exit()
         except Exception as e:
             s = StringIO()
             sys.print_exception(e, s)
