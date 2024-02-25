@@ -27,10 +27,12 @@ import urequests
 import time
 import sys
 
-from smartdisplay import BouncingBalls, Clock, HouseTemperature, Sonos, Trains
+from secrets import SENTRY_INGEST, SENTRY_KEY, SENTRY_PROJECT_ID
+from smartdisplay import BouncingBalls, Clock, HouseTemperature, SentryClient, Sonos, Trains
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
+SENTRY_CLIENT = SentryClient(SENTRY_INGEST, SENTRY_PROJECT_ID, SENTRY_KEY)
 
 def get_next_screen(current: str) -> str:
     print("Getting next screen")
@@ -124,10 +126,9 @@ def main_safe():
         except MemoryError:
             sys.exit()
         except Exception as e:
-            s = StringIO()
-            sys.print_exception(e, s)
-            s.seek(0)
-            log_error(s.read())
+            print("Got exception", e)
+            print(SENTRY_CLIENT.send_exception(e))
+
             time.sleep_ms(1000)
         except:  # noqa
             log_error("Unknown exception...")

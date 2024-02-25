@@ -18,5 +18,6 @@
 from .balls import BouncingBalls
 from .clock import Clock
 from .house_temperature import HouseTemperature
+from .sentry import SentryClient
 from .sonos import Sonos
 from .trains import Trains
