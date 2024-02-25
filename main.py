@@ -70,10 +70,14 @@ def main():
         rotate=0 if I75.is_emulated() else 90)
 
     while not i75.enable_wifi():
-        log_error("Failed to enable wifi.\n")
         time.sleep_ms(1000)
+
+    failure_count: int = 0
     while not i75.set_time():
-        log_error("Failed to set time.\n")
+        if failure_count > 30:
+            log_error("Failed to set time.\n")
+            failure_count = 0
+        failure_count += 1
         time.sleep_ms(1000)
 
     next_ntp = i75.now().hour + 23
