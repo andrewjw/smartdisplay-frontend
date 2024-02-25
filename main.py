@@ -123,10 +123,11 @@ def main_safe():
             main()
         except KeyboardInterrupt:
             break
-        except MemoryError:
+        except MemoryError as e:
+            print(SENTRY_CLIENT.send_exception(e))
+
             sys.exit()
         except Exception as e:
-            print("Got exception", e)
             print(SENTRY_CLIENT.send_exception(e))
 
             time.sleep_ms(1000)
