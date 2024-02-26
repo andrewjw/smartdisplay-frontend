@@ -23,6 +23,7 @@ try:
 except ImportError:
     pass
 from io import StringIO
+import machine
 import urequests
 import time
 import sys
@@ -126,7 +127,7 @@ def main_safe():
         except MemoryError as e:
             print(SENTRY_CLIENT.send_exception(e))
 
-            sys.exit()
+            machine.soft_reset()
         except Exception as e:
             print(SENTRY_CLIENT.send_exception(e))
 
