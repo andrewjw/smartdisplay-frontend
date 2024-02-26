@@ -36,7 +36,7 @@ import urequests
 
 def get_exception_str(exception: Exception) -> str:
     exception_io = io.StringIO()
-    sys.print_exception(exception, exception_io)
+    sys.print_exception(exception, exception_io) # type: ignore
     exception_io.seek(0)
     result = exception_io.read()
     exception_io.close()
