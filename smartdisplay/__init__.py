@@ -18,6 +18,7 @@
 from .balls import BouncingBalls
 from .clock import Clock
 from .house_temperature import HouseTemperature
-from .sentry import SentryClient
+from .network_screen import NetworkScreen
+from .sentry import SentryClient, get_exception_str
 from .sonos import Sonos
 from .trains import Trains

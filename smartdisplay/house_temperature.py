@@ -17,16 +17,19 @@
 
 import math
 try:
-    from typing import Tuple
+    from typing import Any, Tuple
 except ImportError:
     pass
+from micropython import const
 import urequests
 
 from i75 import I75, render_text, text_boundingbox
 
-FONT = "cg_pixel_3x5_5"
+from .network_screen import NetworkScreen
 
-TITLE = "House Temps"
+_FONT = const("cg_pixel_3x5_5")
+
+_TITLE = const("House Temps")
 
 
 class Room:
@@ -50,77 +53,82 @@ ROOMS = [
 ]
 
 
-class HouseTemperature:
-    def __init__(self, backend: str) -> None:
+class HouseTemperature(NetworkScreen):
+    def __init__(self, i75: I75, backend: str) -> None:
+        super().__init__(i75)
+        self.backend = backend
         self.rendered = False
         self.total_time = 0
 
-        r = urequests.get(f"http://{backend}:6001/house_temperature")
+        self.data: Any
+
+    def load(self) -> None:
+        r = urequests.get(f"http://{self.backend}:6001/house_temperature")
         try:
             self.data = r.json()
         finally:
             r.close()
 
-    def render(self, i75: I75, frame_time: int) -> bool:
+    def render(self, frame_time: int) -> bool:
         self.total_time += frame_time
 
         if self.rendered:
             return self.total_time > 30000
 
-        white = i75.display.create_pen(255, 255, 255)
-        blue = i75.display.create_pen(0, 0, 255)
-        yellow = i75.display.create_pen(0, 255, 255)
-        red = i75.display.create_pen(255, 0, 0)
+        white = self.i75.display.create_pen(255, 255, 255)
+        blue = self.i75.display.create_pen(0, 0, 255)
+        yellow = self.i75.display.create_pen(0, 255, 255)
+        red = self.i75.display.create_pen(255, 0, 0)
 
-        i75.display.set_pen(white)
+        self.i75.display.set_pen(white)
 
-        room_widths = {room.index: text_boundingbox(FONT, room.title)[0]
+        room_widths = {room.index: text_boundingbox(_FONT, room.title)[0]
                        for room in ROOMS}
         max_room_widths = max([v for v in room_widths.values()]) + 1
 
-        title_width, font_height = text_boundingbox(FONT, TITLE)
-        render_text(i75.display,
-                    FONT,
+        title_width, font_height = text_boundingbox(_FONT, _TITLE)
+        render_text(self.i75.display,
+                    _FONT,
                     math.floor(32 - title_width / 2),
                     1,
-                    "House Temps")
+                    _TITLE)
 
         y = font_height + 3
         for room in ROOMS:
-            i75.display.set_pen(white)
-            render_text(i75.display,
-                        FONT,
+            self.i75.display.set_pen(white)
+            render_text(self.i75.display,
+                        _FONT,
                         max_room_widths - room_widths[room.index],
                         y,
                         room.title)
 
             temp = self.data[room.index]
             if temp < room.limit[0]:
-                i75.display.set_pen(blue)
+                self.i75.display.set_pen(blue)
             elif temp > room.limit[1]:
-                i75.display.set_pen(yellow)
+                self.i75.display.set_pen(yellow)
             elif temp > room.limit[2]:
-                i75.display.set_pen(red)
+                self.i75.display.set_pen(red)
 
             temp_str = f"{temp:.1f}"
-            temp_width, _ = text_boundingbox(FONT, temp_str)
-            render_text(i75.display, FONT, max_room_widths, y, temp_str)
+            temp_width, _ = text_boundingbox(_FONT, temp_str)
+            render_text(self.i75.display, _FONT, max_room_widths, y, temp_str)
 
             for i in range(3):
-                i75.display.pixel(max_room_widths + temp_width + i, y)
-                i75.display.pixel(max_room_widths + temp_width + 2 - i, y + 2)
-                i75.display.pixel(max_room_widths + temp_width, y + i)
-                i75.display.pixel(max_room_widths + temp_width + 2, y + 2 - i)
+                self.i75.display.pixel(max_room_widths + temp_width + i, y)
+                self.i75.display.pixel(max_room_widths + temp_width + 2 - i, y + 2)
+                self.i75.display.pixel(max_room_widths + temp_width, y + i)
+                self.i75.display.pixel(max_room_widths + temp_width + 2, y + 2 - i)
 
-            render_text(i75.display,
-                        FONT,
+            render_text(self.i75.display,
+                        _FONT,
                         max_room_widths + temp_width + 4,
                         y,
                         "C")
 
             y += font_height + 2
 
-        i75.display.update()
+        self.i75.display.update()
         self.rendered = True
 
         return False

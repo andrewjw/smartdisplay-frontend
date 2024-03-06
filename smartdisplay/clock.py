@@ -27,6 +27,8 @@ import picographics
 from i75 import DateTime, I75
 from i75.tz import EuropeLondon
 
+from .screen import Screen
+
 HOUR_LENGTH = 25
 MINUTE_LENGTH = 30
 SECOND_LENGTH = 30
@@ -98,8 +100,9 @@ def render_clock(i75: I75,
     render_hand(i75, HOUR_LENGTH, hour_percent)
 
 
-class Clock:
+class Clock(Screen):
     def __init__(self, i75: I75) -> None:
+        super().__init__(i75)
         self.white = i75.display.create_pen(255, 255, 255)
         self.red = i75.display.create_pen(255, 0, 0)
         self.black = i75.display.create_pen(0, 0, 0)
@@ -109,9 +112,9 @@ class Clock:
         self.old_subsecond = 0
         self.base_ticks = 0
 
-    def render(self, i75: I75, frame_time: int) -> bool:
-        now = i75.now()
-        subsecond = i75.ticks_diff(i75.ticks_ms(), self.base_ticks) % 1000
+    def render(self, frame_time: int) -> bool:
+        now = self.i75.now()
+        subsecond = self.i75.ticks_diff(self.i75.ticks_ms(), self.base_ticks) % 1000
 
         if now != self.old_time and subsecond > self.old_subsecond \
            and subsecond < 9975:
@@ -122,13 +125,13 @@ class Clock:
 
         now = EuropeLondon.to_localtime(now)
 
-        render_clock(i75,
+        render_clock(self.i75,
                      self.black,
                      self.black,
                      self.old_time,
                      self.old_subsecond,
                      False)
-        render_clock(i75,
+        render_clock(self.i75,
                      self.white,
                      self.red,
                      now,
@@ -137,7 +140,7 @@ class Clock:
         self.old_time = now
         self.old_subsecond = subsecond
 
-        i75.display.update()
+        self.i75.display.update()
 
         self.total_time += frame_time
         return self.total_time >= 30000

@@ -14,8 +14,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -31,12 +31,16 @@ import os
 import sys
 import io
 import json
+try:
+    from typing import Optional
+except ImportError:
+    pass
 import urequests
 
 
 def get_exception_str(exception: Exception) -> str:
     exception_io = io.StringIO()
-    sys.print_exception(exception, exception_io) # type: ignore
+    sys.print_exception(exception, exception_io)  # type: ignore
     exception_io.seek(0)
     result = exception_io.read()
     exception_io.close()
@@ -44,21 +48,27 @@ def get_exception_str(exception: Exception) -> str:
 
 
 def http_request(domain, url, data, headers=()) -> str:
-    method = urequests.get
     if data:
-        method = urequests.post
+        r = urequests.post(domain + url, data=data, headers=headers)
+    else:
+        r = urequests.get(domain + url, headers=headers)
 
-    r = method(domain + url, data=data, headers=headers)
     return r.text
 
 
 class SentryClient:
-    def __init__(self, ingest_domain: str, project_id: str, key: str) -> None:
+    def __init__(self,
+                 ingest_domain: Optional[str],
+                 project_id: Optional[str],
+                 key: Optional[str]) -> None:
         self.ingest_domain = ingest_domain
         self.project_id = project_id
         self.key = key
 
     def send_exception(self, exception: Exception) -> str:
+        if self.ingest_domain is None:
+            sys.stderr.write(get_exception_str(exception) + "\n")
+            return ""
         domain = 'https://' + self.ingest_domain
         url_tpl = '/api/{}/store/'
         url = url_tpl.format(self.project_id)
