@@ -33,6 +33,11 @@ import io
 import json
 import urequests
 
+try:
+    from typing import Optional
+except ImportError:
+    pass
+
 
 def get_exception_str(exception: Exception) -> str:
     exception_io = io.StringIO()
@@ -44,21 +49,28 @@ def get_exception_str(exception: Exception) -> str:
 
 
 def http_request(domain, url, data, headers=()) -> str:
-    method = urequests.get
     if data:
         method = urequests.post
+        r = urequests.post(domain + url, data=data, headers=headers)
+    else:
+        r = urequests.get(domain + url, headers=headers)
 
-    r = method(domain + url, data=data, headers=headers)
     return r.text
 
 
 class SentryClient:
-    def __init__(self, ingest_domain: str, project_id: str, key: str) -> None:
+    def __init__(self,
+                 ingest_domain: Optional[str],
+                 project_id: Optional[str],
+                 key: Optional[str]) -> None:
         self.ingest_domain = ingest_domain
         self.project_id = project_id
         self.key = key
 
     def send_exception(self, exception: Exception) -> str:
+        if self.ingest_domain is None:
+            sys.stderr.write(get_exception_str(exception) + "\n")
+            return ""
         domain = 'https://' + self.ingest_domain
         url_tpl = '/api/{}/store/'
         url = url_tpl.format(self.project_id)
