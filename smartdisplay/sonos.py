@@ -66,7 +66,7 @@ class Sonos:
             return False
 
         def has_param(p: str) -> bool:
-            self.track_info[p] is not None and len(self.track_info[p]) > 0
+            return self.track_info[p] is not None and len(self.track_info[p]) > 0
 
         has_artist = has_param("artist")
         has_album = has_param("album")
