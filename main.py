@@ -127,7 +127,7 @@ def main_safe():
         except MemoryError as e:
             print(SENTRY_CLIENT.send_exception(e))
 
-            machine.soft_reset()
+            machine.reset()
         except Exception as e:
             print(SENTRY_CLIENT.send_exception(e))
 
