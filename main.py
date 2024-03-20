@@ -29,11 +29,13 @@ import time
 import sys
 
 from secrets import SENTRY_INGEST, SENTRY_KEY, SENTRY_PROJECT_ID
-from smartdisplay import BouncingBalls, Clock, HouseTemperature, SentryClient, Sonos, Trains
+from smartdisplay import BouncingBalls, Clock, CurrentWeather, \
+                         HouseTemperature, SentryClient, Sonos, Trains
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
 SENTRY_CLIENT = SentryClient(SENTRY_INGEST, SENTRY_PROJECT_ID, SENTRY_KEY)
+
 
 def get_next_screen(current: str) -> str:
     print("Getting next screen")
@@ -64,10 +66,12 @@ def get_screen_obj(i75: I75, screen_name: str):
         return Trains(BACKEND, False)
     if screen_name == "house_temperature":
         return HouseTemperature(BACKEND)
+    if screen_name == "current_weather":
+        return CurrentWeather(BACKEND, IMAGE)
     return Clock(i75)
 
 
-def main():
+def main() -> None:
     i75 = I75(
         display_type=picographics.DISPLAY_INTERSTATE75_64X64,
         rotate=0 if I75.is_emulated() else 90)
