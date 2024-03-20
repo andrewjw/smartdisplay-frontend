@@ -49,11 +49,14 @@ def get_next_screen(current: str) -> str:
 BALLS: Optional[BouncingBalls] = None
 
 
+IMAGE = bytearray(64 * 64 * 3)
+
+
 def get_screen_obj(i75: I75, screen_name: str):
     global BALLS
     print("Next screen", screen_name)
     if screen_name == "sonos":
-        return Sonos(BACKEND)
+        return Sonos(BACKEND, IMAGE)
     if screen_name == "balls":
         if BALLS is None:
             BALLS = BouncingBalls(i75)

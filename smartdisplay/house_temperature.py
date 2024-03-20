@@ -40,12 +40,12 @@ class Room:
 
 
 ROOMS = [
-    Room("Main:", "mainbedroom", (19, 22, 25)),
-    Room("Alex:", "alexbedroom", (19, 22, 25)),
-    Room("Harriet:", "harrietbedroom", (19, 22, 25)),
-    Room("Kitchen:", "kitchen", (19, 22, 25)),
-    Room("Lounge:", "lounge", (19, 22, 25)),
-    Room("Office:", "office", (19, 22, 25)),
+    Room("Main:", "mainbedroom", (19, 23, 25)),
+    Room("Alex:", "alexbedroom", (19, 23, 25)),
+    Room("Harriet:", "harrietbedroom", (19, 23, 25)),
+    Room("Kitchen:", "kitchen", (19, 23, 25)),
+    Room("Lounge:", "lounge", (19, 23, 25)),
+    Room("Office:", "office", (19, 23, 25)),
     Room("Outside:", "outside", (2, 24, 28)),
 ]
 
@@ -69,7 +69,7 @@ class HouseTemperature:
 
         white = i75.display.create_pen(255, 255, 255)
         blue = i75.display.create_pen(0, 0, 255)
-        yellow = i75.display.create_pen(0, 255, 255)
+        yellow = i75.display.create_pen(255, 255, 0)
         red = i75.display.create_pen(255, 0, 0)
 
         i75.display.set_pen(white)
@@ -83,7 +83,7 @@ class HouseTemperature:
                     FONT,
                     math.floor(32 - title_width / 2),
                     1,
-                    "House Temps")
+                    TITLE)
 
         y = font_height + 3
         for room in ROOMS:

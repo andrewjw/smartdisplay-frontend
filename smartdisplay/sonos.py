@@ -22,13 +22,13 @@ FONT = "cg_pixel_3x5_5"
 
 
 class Sonos:
-    def __init__(self, backend: str) -> None:
+    def __init__(self, backend: str, image: bytearray) -> None:
         self.backend = backend
         self.rendered = False
         self.total_time = 0
         self.rendered_text = False
         self.track_info = None
-        self.image = None
+        self.image = image
 
     def render_art(self, i75: I75) -> bool:
         r = urequests.get(f"http://{self.backend}:6001/sonos")
@@ -40,8 +40,12 @@ class Sonos:
         if self.track_info is None or not self.track_info["album_art"]:
             return True
 
-        r = urequests.get(f"http://{self.backend}:6001/sonos/art")
-        self.image = r.content
+        try:
+            r = urequests.get(f"http://{self.backend}:6001/sonos/art", stream=True)
+            r.raw.readinto(self.image)
+        finally:
+            r.close()
+
         try:
             for y in range(64):
                 for x in range(64):
@@ -66,7 +70,8 @@ class Sonos:
             return False
 
         def has_param(p: str) -> bool:
-            return self.track_info[p] is not None and len(self.track_info[p]) > 0
+            return self.track_info[p] is not None \
+                   and len(self.track_info[p]) > 0
 
         has_artist = has_param("artist")
         has_album = has_param("album")
