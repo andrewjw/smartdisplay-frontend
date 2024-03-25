@@ -65,11 +65,11 @@ class CurrentWeather:
             image_file = "images/hot.i75"
         elif self.data['temperature'] < 2:
             image_file = "images/cold.i75"
-        elif False:#self.data['lux'] < 10:
+        elif self.data['lux'] < 10:
             image_file = "images/night.i75"
-        elif False:#self.data['lux'] < 2500:
+        elif self.data['lux'] < 2500:
             image_file = "images/sunrise.i75"
-        elif False:#self.data['lux'] > 50000:
+        elif self.data['lux'] > 50000:
             image_file = "images/sunny.i75"
         else:
             image_file = "images/cloudy.i75"
