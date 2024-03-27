@@ -59,7 +59,7 @@ class CurrentWeather:
         red = i75.display.create_pen(255, 0, 0)
         violet = i75.display.create_pen(127, 0, 255)
 
-        if self.data['rain_1h'] > 1.0:
+        if self.data['rain_20m'] >= 0.2:
             image_file = "images/rainy.i75"
         elif self.data['temperature'] > 28:
             image_file = "images/hot.i75"
