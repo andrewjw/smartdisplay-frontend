@@ -15,11 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from .balls import BouncingBalls
-from .blackout import Blackout
-from .clock import Clock
-from .current_weather import CurrentWeather
-from .house_temperature import HouseTemperature
-from .sentry import SentryClient
-from .sonos import Sonos
-from .trains import Trains
+from i75 import I75
+
+
+class Blackout:
+    def __init__(self) -> None:
+        self.total_time = 0
+
+    def render(self, i75: I75, frame_time: int) -> bool:
+        i75.display.update()
+
+        self.total_time += frame_time
+        return self.total_time >= 60000

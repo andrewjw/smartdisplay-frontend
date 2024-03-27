@@ -22,13 +22,14 @@ FONT = "cg_pixel_3x5_5"
 
 
 class Sonos:
-    def __init__(self, backend: str, image: bytearray) -> None:
+    def __init__(self, backend: str, image: bytearray, quick: bool) -> None:
         self.backend = backend
         self.rendered = False
         self.total_time = 0
         self.rendered_text = False
         self.track_info = None
         self.image = image
+        self.quick = quick
 
     def render_art(self, i75: I75) -> bool:
         r = urequests.get(f"http://{self.backend}:6001/sonos")
@@ -62,12 +63,12 @@ class Sonos:
 
         return False
 
-    def render_track_details(self, i75: I75) -> bool:
+    def render_track_details(self, i75: I75) -> None:
         self.rendered_text = True
 
         y = 64
         if self.track_info is None:
-            return False
+            return
 
         def has_param(p: str) -> bool:
             return self.track_info[p] is not None \
@@ -89,7 +90,7 @@ class Sonos:
 
         i75.display.update()
 
-        return False
+        return
 
     def render_text(self, i75: I75, y: int, text: str) -> int:
         text = wrap_text(FONT, text, 62)
@@ -124,12 +125,10 @@ class Sonos:
 
     def render(self, i75: I75, frame_time: int) -> bool:
         self.total_time += frame_time
-        if not self.rendered_text and self.total_time > 10000:
-            return self.render_track_details(i75)
-        if self.total_time > 30000:
+        if not self.rendered and self.render_art(i75):
             return True
 
-        if not self.rendered:
-            return self.render_art(i75)
+        if not self.rendered_text and (self.total_time > 10000 or self.quick):
+            self.render_track_details(i75)
 
-        return False
+        return self.total_time > 30000

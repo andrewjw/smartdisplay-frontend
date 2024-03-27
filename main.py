@@ -30,7 +30,8 @@ import sys
 
 from secrets import SENTRY_INGEST, SENTRY_KEY, SENTRY_PROJECT_ID
 from smartdisplay import BouncingBalls, Clock, CurrentWeather, \
-                         HouseTemperature, SentryClient, Sonos, Trains
+                         HouseTemperature, SentryClient, Sonos, Trains, \
+                         Blackout
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
@@ -55,8 +56,12 @@ IMAGE = bytearray(64 * 64 * 3)
 def get_screen_obj(i75: I75, screen_name: str):
     global BALLS
     print("Next screen", screen_name)
+    if screen_name == "blackout":
+        return Blackout()
     if screen_name == "sonos":
-        return Sonos(BACKEND, IMAGE)
+        return Sonos(BACKEND, IMAGE, False)
+    if screen_name == "sonos_quick":
+        return Sonos(BACKEND, IMAGE, True)
     if screen_name == "balls":
         if BALLS is None:
             BALLS = BouncingBalls(i75)
