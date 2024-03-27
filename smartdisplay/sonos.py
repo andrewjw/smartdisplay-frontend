@@ -131,4 +131,4 @@ class Sonos:
         if not self.rendered_text and (self.total_time > 10000 or self.quick):
             self.render_track_details(i75)
 
-        return self.total_time > 30000
+        return self.total_time > (15000 if self.quick else 30000)
