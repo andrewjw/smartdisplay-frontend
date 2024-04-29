@@ -31,7 +31,7 @@ import sys
 from secrets import SENTRY_INGEST, SENTRY_KEY, SENTRY_PROJECT_ID
 from smartdisplay import BouncingBalls, Clock, CurrentWeather, \
                          HouseTemperature, SentryClient, Sonos, Trains, \
-                         Blackout
+                         Blackout, Solar
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
@@ -76,6 +76,8 @@ def get_screen_obj(i75: I75, screen_name: str):
         return HouseTemperature(BACKEND)
     if screen_name == "current_weather":
         return CurrentWeather(BACKEND, IMAGE)
+    if screen_name == "solar":
+        return Solar(BACKEND)
     return Clock(i75)
 
 

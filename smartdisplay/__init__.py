@@ -21,5 +21,6 @@ from .clock import Clock
 from .current_weather import CurrentWeather
 from .house_temperature import HouseTemperature
 from .sentry import SentryClient
+from .solar import Solar
 from .sonos import Sonos
 from .trains import Trains

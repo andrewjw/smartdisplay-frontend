@@ -13,3 +13,7 @@ i75-convert-image raw_images/rainy.jpg 3 > images/rainy.i75
 i75-convert-image raw_images/sunrise.jpg 3 > images/sunrise.i75
 i75-convert-image raw_images/night.jpg 3 > images/night.i75
 i75-convert-image raw_images/sunny.jpg 3 > images/sunny.i75
+i75-convert-image raw_images/sun_icon.png 1 > images/sun_icon.i75
+i75-convert-image raw_images/battery_icon.png 3 > images/battery_icon.i75
+i75-convert-image raw_images/house_icon.png 1 > images/house_icon.i75
+i75-convert-image raw_images/pylon_icon.png 1 > images/pylon_icon.i75
