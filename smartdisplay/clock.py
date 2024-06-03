@@ -110,7 +110,7 @@ class Clock:
         self.base_ticks = 0
 
     def render(self, i75: I75, frame_time: int) -> bool:
-        now = i75.now()
+        now = EuropeLondon.to_localtime(i75.now())
         subsecond = i75.ticks_diff(i75.ticks_ms(), self.base_ticks) % 1000
 
         if now != self.old_time and subsecond > self.old_subsecond \
@@ -119,8 +119,6 @@ class Clock:
         elif now == self.old_time and subsecond < self.old_subsecond:
             self.base_ticks += 25
             subsecond = 999
-
-        now = EuropeLondon.to_localtime(now)
 
         render_clock(i75,
                      self.black,
