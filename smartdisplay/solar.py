@@ -40,7 +40,6 @@ class Solar:
             self.data = r.json()
         finally:
             r.close()
-        self.data["battery"] = 10
 
     def render(self, i75: I75, frame_time: int) -> bool:
         self.total_time += frame_time
