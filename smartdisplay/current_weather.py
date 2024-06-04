@@ -127,13 +127,26 @@ class CurrentWeather:
         rain_24h, _ = text_boundingbox(FONT, "24h:")
         rain_1h, _ = text_boundingbox(FONT, "1h:")
 
-        rain_24h_str = \
-            f"Rain: 24h: {self.data['rain_24h']:.1f}mm"
-        render_text(i75.display, FONT, (max_prefix - rain) + 2, y, rain_24h_str)
+        rain_24h_str = f"{self.data['rain_24h']:.1f}mm"
+        rain_24h_prefix, _ = text_boundingbox(FONT, rain_24h_str.split(".")[0])
+        rain_1h_str = f"{self.data['rain_1h']:.1f}mm"
+        rain_1h_prefix, _ = text_boundingbox(FONT, rain_1h_str.split(".")[0])
+
+        rain_dot_max = max(rain_24h_prefix, rain_1h_prefix, 5)
+
+        render_text(i75.display, FONT, (max_prefix - rain) + 2, y, "Rain: 24h:")
+        render_text(i75.display,
+                    FONT,
+                    max_prefix + rain_24h + 2 + rain_dot_max - rain_24h_prefix,
+                    y,
+                    rain_24h_str)
         y += font_height
-        rain_1h_str = \
-            f"1h: {self.data['rain_1h']:.1f}mm"
-        render_text(i75.display, FONT, (max_prefix + rain_24h - rain_1h) + 2, y, rain_1h_str)
+        render_text(i75.display, FONT, (max_prefix + rain_24h - rain_1h) + 2, y, "1h:")
+        render_text(i75.display,
+                    FONT,
+                    (max_prefix + rain_24h - rain_1h) + 2 + rain_1h + rain_dot_max - rain_1h_prefix,
+                    y,
+                    rain_1h_str)
 
         y += 1 + font_height
         wind_str = \
