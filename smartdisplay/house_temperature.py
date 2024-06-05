@@ -85,6 +85,13 @@ class HouseTemperature:
                     1,
                     TITLE)
 
+        max_pre_point = 0
+        for room in ROOMS:
+            temp_str = f"{self.data[room.index]:.1f}".split(".")[0]
+            temp_width, _ = text_boundingbox(FONT, temp_str)
+            if temp_width > max_pre_point:
+                max_pre_point = temp_width
+
         y = font_height + 3
         for room in ROOMS:
             i75.display.set_pen(white)
@@ -103,8 +110,10 @@ class HouseTemperature:
                 i75.display.set_pen(red)
 
             temp_str = f"{temp:.1f}"
+            pre_point, _ = text_boundingbox(FONT, temp_str.split(".")[0])
             temp_width, _ = text_boundingbox(FONT, temp_str)
-            render_text(i75.display, FONT, max_room_widths, y, temp_str)
+            render_text(i75.display, FONT, max_room_widths + (max_pre_point - pre_point), y, temp_str)
+            temp_width += (max_pre_point - pre_point)
 
             for i in range(3):
                 i75.display.pixel(max_room_widths + temp_width + i, y)
