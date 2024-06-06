@@ -62,9 +62,14 @@ class Solar:
 
         i75.display.set_pen(white)
 
-        battery_change_colour = green if self.data['battery_change'] > 250 else (
-            red if self.data['battery_change'] < 500 else yellow
-        )
+        if self.data['battery_change'] > 500:
+            battery_change_colour = green
+        elif self.data['battery_change'] > 100:
+            battery_change_colour = yellow
+        elif self.data['battery_change'] > -100:
+            battery_change_colour = white
+        else:
+            battery_change_colour = red
         if abs(self.data['battery_change']) > 1000:
             battery_change = f"{self.data['battery_change']/1000:0.1f}kw"
         else:
@@ -107,16 +112,25 @@ class Solar:
                     max_length - prefixes["House"],
                     1,
                     "House:")
+        house_wh = f"{self.data['house_wh']/1000:0.1f}kwh"
+        house_cost = f"£{self.data['house_cost']:0.2f}"
+        car_wh = f"{self.data['car_wh']/1000:0.1f}kwh"
+        car_cost = f"£{self.data['car_cost']:0.2f}"
+        house_wh_pre_point, _ = text_boundingbox(FONT, house_wh.split(".")[0])
+        house_cost_pre_point, _ = text_boundingbox(FONT, house_cost.split(".")[0])
+        car_wh_pre_point, _ = text_boundingbox(FONT, car_wh.split(".")[0])
+        car_cost_pre_point, _ = text_boundingbox(FONT, car_cost.split(".")[0])
+        max_pre_point = max(house_wh_pre_point, house_cost_pre_point, car_wh_pre_point, car_cost_pre_point)
         render_text(i75.display,
                     FONT,
-                    max_length,
+                    max_length + (max_pre_point - house_wh_pre_point),
                     1,
-                    f"{self.data['house_wh']/1000:0.1f}kwh")
+                    house_wh)
         render_text(i75.display,
                     FONT,
-                    max_length,
+                    max_length + (max_pre_point - house_cost_pre_point),
                     1 + font_height,
-                    f"£{self.data['house_cost']:0.2f}")
+                    house_cost)
         render_text(i75.display,
                     FONT,
                     max_length - prefixes["Car"],
@@ -124,14 +138,14 @@ class Solar:
                     f"Car:")
         render_text(i75.display,
                     FONT,
-                    max_length,
+                    max_length + (max_pre_point - car_wh_pre_point),
                     1 + font_height * 2,
-                    f"{self.data['car_wh']/1000:0.1f}kwh")
+                    car_wh)
         render_text(i75.display,
                     FONT,
-                    max_length,
+                    max_length + (max_pre_point - car_cost_pre_point),
                     1 + font_height * 3,
-                    f"£{self.data['car_cost']:0.2f}")
+                    car_cost)
 
         icon = Image.load(open("images/sun_icon.i75", "rb"))
         icon.set_colour(255, 255, 0)
