@@ -87,6 +87,8 @@ class HouseTemperature:
 
         max_pre_point = 0
         for room in ROOMS:
+            if room.index not in self.data:
+                continue
             temp_str = f"{self.data[room.index]:.1f}".split(".")[0]
             temp_width, _ = text_boundingbox(FONT, temp_str)
             if temp_width > max_pre_point:
@@ -101,16 +103,20 @@ class HouseTemperature:
                         y,
                         room.title)
 
-            temp = self.data[room.index]
-            if temp < room.limit[0]:
-                i75.display.set_pen(blue)
-            elif temp > room.limit[1]:
-                i75.display.set_pen(yellow)
-            elif temp > room.limit[2]:
-                i75.display.set_pen(red)
+            if room.index in self.data:
+                temp = self.data[room.index]
+                if temp < room.limit[0]:
+                    i75.display.set_pen(blue)
+                elif temp > room.limit[1]:
+                    i75.display.set_pen(yellow)
+                elif temp > room.limit[2]:
+                    i75.display.set_pen(red)
 
-            temp_str = f"{temp:.1f}"
-            pre_point, _ = text_boundingbox(FONT, temp_str.split(".")[0])
+                temp_str = f"{temp:.1f}"
+                pre_point, _ = text_boundingbox(FONT, temp_str.split(".")[0])
+            else:
+                temp_str = "-"
+                pre_point = max_pre_point
             temp_width, _ = text_boundingbox(FONT, temp_str)
             render_text(i75.display, FONT, max_room_widths + (max_pre_point - pre_point), y, temp_str)
             temp_width += (max_pre_point - pre_point)
