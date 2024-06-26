@@ -39,8 +39,15 @@ class Trains:
         i, y = 0, 8
 
         if self.msg is not None and len(self.msg) > 0:
-            self.msg = wrap_text(FONT, self.msg, 62)
-            _, height = text_boundingbox(FONT, self.msg)
+            raw_msg = self.msg
+            while len(raw_msg) > 0:
+                self.msg = wrap_text(FONT, raw_msg, 62)
+                _, height = text_boundingbox(FONT, self.msg)
+
+                if height > 20:
+                    raw_msg = " ".join(raw_msg.split(" ")[:-1]) + "..."
+                else:
+                    break
             render_text(i75.display, FONT, 1, y, self.msg)
             y += height
 
