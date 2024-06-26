@@ -107,10 +107,10 @@ class HouseTemperature:
                 temp = self.data[room.index]
                 if temp < room.limit[0]:
                     i75.display.set_pen(blue)
-                elif temp > room.limit[1]:
-                    i75.display.set_pen(yellow)
                 elif temp > room.limit[2]:
                     i75.display.set_pen(red)
+                elif temp > room.limit[1]:
+                    i75.display.set_pen(yellow)
 
                 temp_str = f"{temp:.1f}"
                 pre_point, _ = text_boundingbox(FONT, temp_str.split(".")[0])
