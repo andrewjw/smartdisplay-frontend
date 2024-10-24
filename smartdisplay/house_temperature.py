@@ -118,7 +118,11 @@ class HouseTemperature:
                 temp_str = "-"
                 pre_point = max_pre_point
             temp_width, _ = text_boundingbox(FONT, temp_str)
-            render_text(i75.display, FONT, max_room_widths + (max_pre_point - pre_point), y, temp_str)
+            render_text(i75.display,
+                        FONT,
+                        max_room_widths + (max_pre_point - pre_point),
+                        y,
+                        temp_str)
             temp_width += (max_pre_point - pre_point)
 
             for i in range(3):
