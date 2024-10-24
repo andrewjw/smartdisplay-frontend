@@ -42,7 +42,8 @@ class Sonos:
             return True
 
         try:
-            r = urequests.get(f"http://{self.backend}:6001/sonos/art", stream=True)
+            r = urequests.get(f"http://{self.backend}:6001/sonos/art",
+                              stream=True)
             r.raw.readinto(self.image)
         finally:
             r.close()
