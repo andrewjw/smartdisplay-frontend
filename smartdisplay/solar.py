@@ -28,6 +28,7 @@ FONT = "cg_pixel_3x5_5"
 
 LIGHT_GAP = 4
 
+
 class Solar:
     def __init__(self, backend: str) -> None:
         self.rendered = False
@@ -116,11 +117,18 @@ class Solar:
         house_cost = f"£{self.data['house_cost']:0.2f}"
         car_wh = f"{self.data['car_wh']/1000:0.1f}kwh"
         car_cost = f"£{self.data['car_cost']:0.2f}"
-        house_wh_pre_point, _ = text_boundingbox(FONT, house_wh.split(".")[0])
-        house_cost_pre_point, _ = text_boundingbox(FONT, house_cost.split(".")[0])
-        car_wh_pre_point, _ = text_boundingbox(FONT, car_wh.split(".")[0])
-        car_cost_pre_point, _ = text_boundingbox(FONT, car_cost.split(".")[0])
-        max_pre_point = max(house_wh_pre_point, house_cost_pre_point, car_wh_pre_point, car_cost_pre_point)
+        house_wh_pre_point, _ = text_boundingbox(FONT,
+                                                 house_wh.split(".")[0])
+        house_cost_pre_point, _ = text_boundingbox(FONT,
+                                                   house_cost.split(".")[0])
+        car_wh_pre_point, _ = text_boundingbox(FONT,
+                                               car_wh.split(".")[0])
+        car_cost_pre_point, _ = text_boundingbox(FONT,
+                                                 car_cost.split(".")[0])
+        max_pre_point = max(house_wh_pre_point,
+                            house_cost_pre_point,
+                            car_wh_pre_point,
+                            car_cost_pre_point)
         render_text(i75.display,
                     FONT,
                     max_length + (max_pre_point - house_wh_pre_point),
@@ -167,14 +175,18 @@ class Solar:
         i75.display.set_pen(battery_green)
         for i in range(1, 8):
             if self.data['battery'] > i * 14:
-                i75.display.line(11, 19 + font_height * 5 - i, 14, 19 + font_height * 5 - i)
+                i75.display.line(11,
+                                 19 + font_height * 5 - i,
+                                 14,
+                                 19 + font_height * 5 - i)
 
         i75.display.set_pen(red if self.data['battery'] < 40 else (
             green if self.data['battery'] > 60 else yellow
         ))
         perc_text = f"{self.data['battery']:0.0f}%"
         perc_width, _ = text_boundingbox(FONT, perc_text)
-        charge_width, _ = text_boundingbox(FONT, battery_change) 
+        charge_width, _ = text_boundingbox(FONT,
+                                           battery_change)
         max_width = max(18, perc_width, charge_width)
         render_text(i75.display,
                     FONT,
@@ -230,44 +242,138 @@ class Solar:
                       dark_green if solar_on else white, self.offset)
         # Battery output
         if self.data['battery_change'] <= -100:
-            self.vertical(13, 23 + 16, 23 + 14, i75, light_green, dark_green, self.offset)
+            self.vertical(13,
+                          23 + 16,
+                          23 + 14,
+                          i75,
+                          light_green,
+                          dark_green,
+                          self.offset)
         elif self.data['battery_change'] >= 100:
-            self.vertical(13, 23 + 14, 23 + 16, i75, light_green, dark_green, self.offset)
+            self.vertical(13,
+                          23 + 14,
+                          23 + 16,
+                          i75,
+                          light_green,
+                          dark_green,
+                          self.offset)
         else:
-            self.vertical(13, 23 + 14, 23 + 16, i75, white, white, self.offset)
+            self.vertical(13,
+                          23 + 14,
+                          23 + 16,
+                          i75,
+                          white,
+                          white,
+                          self.offset)
         # Link to house
         pv_system = self.data['pv_power'] * 1000 - self.data['battery_change']
         if pv_system <= -100:
-            self.horizontal(32, 13, 23 + 13, i75, light_green, dark_green, (self.offset + 0) % LIGHT_GAP)
+            self.horizontal(32,
+                            13,
+                            23 + 13,
+                            i75,
+                            light_green,
+                            dark_green,
+                            (self.offset + 0) % LIGHT_GAP)
         elif pv_system >= 100:
-            self.horizontal(13, 32, 23 + 13, i75, light_green, dark_green, (self.offset + 1) % LIGHT_GAP)
+            self.horizontal(13,
+                            32,
+                            23 + 13,
+                            i75,
+                            light_green,
+                            dark_green,
+                            (self.offset + 1) % LIGHT_GAP)
         else:
-            self.horizontal(13, 32, 23 + 13, i75, white, white, self.offset)
+            self.horizontal(13,
+                            32,
+                            23 + 13,
+                            i75,
+                            white,
+                            white,
+                            self.offset)
 
         if self.data['current_power'] >= 100:
             # Grid up
-            self.vertical(53, 23 + 20, 23 + 13, i75, light_green, dark_green, self.offset)
+            self.vertical(53,
+                          23 + 20,
+                          23 + 13,
+                          i75,
+                          light_green,
+                          dark_green,
+                          self.offset)
             # House to grid
-            self.horizontal(53, 34, 23 + 13, i75, light_green, dark_green, (self.offset + 1) % LIGHT_GAP)
+            self.horizontal(53,
+                            34,
+                            23 + 13,
+                            i75,
+                            light_green,
+                            dark_green,
+                            (self.offset + 1) % LIGHT_GAP)
         elif self.data['current_power'] <= -100:
-            self.vertical(53, 23 + 13, 23 + 20, i75, light_green, dark_green, (self.offset + 1) % LIGHT_GAP)
-            self.horizontal(34, 53, 23 + 13, i75, light_green, dark_green, self.offset)
+            self.vertical(53,
+                          23 + 13,
+                          23 + 20,
+                          i75,
+                          light_green,
+                          dark_green,
+                          (self.offset + 1) % LIGHT_GAP)
+            self.horizontal(34,
+                            53,
+                            23 + 13,
+                            i75,
+                            light_green,
+                            dark_green,
+                            self.offset)
         else:
-            self.vertical(53, 23 + 13, 23 + 20, i75, white, white, self.offset)
-            self.horizontal(34, 53, 23 + 13, i75, white, white, self.offset)
+            self.vertical(53,
+                          23 + 13,
+                          23 + 20,
+                          i75,
+                          white,
+                          white,
+                          self.offset)
+            self.horizontal(34,
+                            53,
+                            23 + 13,
+                            i75,
+                            white,
+                            white,
+                            self.offset)
         # Down to house
-        self.vertical(33, 23 + 13, 23 + 20, i75, light_green, dark_green, (self.offset + 1) % LIGHT_GAP)
+        self.vertical(33,
+                      23 + 13,
+                      23 + 20,
+                      i75,
+                      light_green,
+                      dark_green,
+                      (self.offset + 1) % LIGHT_GAP)
 
-    def horizontal(self, x1: int, x2: int, y1: int, i75: I75, light, dark, offset: int) -> None:
+    def horizontal(self,
+                   x1: int,
+                   x2: int,
+                   y1: int,
+                   i75: I75,
+                   light,
+                   dark,
+                   offset: int) -> None:
         start = x1
         direction = 1 if x1 < x2 else -1
         for i in range(abs(x2 - x1) + 1):
-            i75.display.set_pen(light if (i - offset) % LIGHT_GAP == 0 else dark)
+            i75.display.set_pen(
+                light if (i - offset) % LIGHT_GAP == 0 else dark)
             i75.display.pixel(start + direction * i, y1)
 
-    def vertical(self, x1: int, y1: int, y2: int, i75: I75, light, dark, offset: int) -> None:
+    def vertical(self,
+                 x1: int,
+                 y1: int,
+                 y2: int,
+                 i75: I75,
+                 light,
+                 dark,
+                 offset: int) -> None:
         start = y1
         direction = 1 if y1 < y2 else -1
         for i in range(abs(y2 - y1) + 1):
-            i75.display.set_pen(light if (i - offset) % LIGHT_GAP == 0 else dark)
+            i75.display.set_pen(
+                light if (i - offset) % LIGHT_GAP == 0 else dark)
             i75.display.pixel(x1, start + direction * i)
