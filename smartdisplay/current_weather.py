@@ -73,7 +73,7 @@ class CurrentWeather:
             image_file = "images/sunny.i75"
         else:
             image_file = "images/cloudy.i75"
-        
+
         img = Image.load_into_buffer(open(image_file, "rb"), self.image)
 
         render_image_with_fade(i75, img, 2, 0.5)
@@ -134,17 +134,26 @@ class CurrentWeather:
 
         rain_dot_max = max(rain_24h_prefix, rain_1h_prefix, 5)
 
-        render_text(i75.display, FONT, (max_prefix - rain) + 2, y, "Rain: 24h:")
+        render_text(i75.display,
+                    FONT,
+                    (max_prefix - rain) + 2,
+                    y,
+                    "Rain: 24h:")
         render_text(i75.display,
                     FONT,
                     max_prefix + rain_24h + 2 + rain_dot_max - rain_24h_prefix,
                     y,
                     rain_24h_str)
         y += font_height
-        render_text(i75.display, FONT, (max_prefix + rain_24h - rain_1h) + 2, y, "1h:")
         render_text(i75.display,
                     FONT,
-                    (max_prefix + rain_24h - rain_1h) + 2 + rain_1h + rain_dot_max - rain_1h_prefix,
+                    (max_prefix + rain_24h - rain_1h) + 2,
+                    y,
+                    "1h:")
+        render_text(i75.display,
+                    FONT,
+                    (max_prefix + rain_24h - rain_1h) + 2
+                    + rain_1h + rain_dot_max - rain_1h_prefix,
                     y,
                     rain_1h_str)
 
