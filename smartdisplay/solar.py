@@ -84,6 +84,11 @@ class Solar:
         else:
             pv_power = f"{self.data['pv_power']*1000:0.0f}w"
 
+        if self.data['pv_generation'] > 1.0:
+            pv_generation = f"{self.data['pv_generation']:0.1f}kwh"
+        else:
+            pv_generation = f"{self.data['pv_generation']*1000:0.0f}wh"
+
         current_power_colour = red if self.data['current_power'] > 250 else (
             green if self.data['current_power'] < 250 else white
         )
@@ -164,7 +169,15 @@ class Solar:
                     FONT,
                     20,
                     2 + font_height * 4,
-                    f"{pv_power}")
+                    pv_power)
+        
+        pwr_width, _ = text_boundingbox(FONT, current_power)
+        gen_width, _ = text_boundingbox(FONT, pv_generation)
+        render_text(i75.display,
+                    FONT,
+                    54 + round(pwr_width / 2.0) - gen_width,
+                    2 + font_height * 4,
+                    pv_generation)
 
         i75.display.set_pen(grey)
         i75.display.line(10, 11 + font_height * 5, 15, 11 + font_height * 5)
