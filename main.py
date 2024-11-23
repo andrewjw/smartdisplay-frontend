@@ -24,14 +24,15 @@ except ImportError:
     pass
 from io import StringIO
 import machine
+import micropython
 import urequests
 import time
 import sys
 
 from secrets import SENTRY_INGEST, SENTRY_KEY, SENTRY_PROJECT_ID
-from smartdisplay import BouncingBalls, Clock, CurrentWeather, \
+from smartdisplay import BouncingBalls, Christmas, Clock, CurrentWeather, \
                          HouseTemperature, SentryClient, Sonos, Trains, \
-                         Blackout, Solar
+                         Blackout, Solar, WaterGas
 
 BACKEND = "127.0.0.1" if I75.is_emulated() else "192.168.1.207"
 
@@ -48,7 +49,6 @@ def get_next_screen(current: str) -> str:
 
 
 BALLS: Optional[BouncingBalls] = None
-
 
 IMAGE = bytearray(64 * 64 * 3)
 
@@ -78,6 +78,10 @@ def get_screen_obj(i75: I75, screen_name: str):
         return CurrentWeather(BACKEND, IMAGE)
     if screen_name == "solar":
         return Solar(BACKEND)
+    if screen_name == "water_gas":
+        return WaterGas(BACKEND)
+    if screen_name == "christmas":
+        return Christmas(i75)
     return Clock(i75)
 
 
@@ -143,6 +147,7 @@ def main_safe():
 
             machine.reset()
         except Exception as e:
+            print(e)
             print(SENTRY_CLIENT.send_exception(e))
 
             time.sleep_ms(1000)
