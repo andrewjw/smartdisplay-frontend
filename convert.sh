@@ -3,6 +3,7 @@
 set -e
 
 mkdir -p images
+mkdir -p images/advent
 
 i75-convert-image raw_images/train_home.png 1 > images/train_home.i75
 i75-convert-image raw_images/train_to_london.png 1 > images/train_to_london.i75
@@ -17,3 +18,8 @@ i75-convert-image raw_images/sun_icon.png 1 > images/sun_icon.i75
 i75-convert-image raw_images/battery_icon.png 3 > images/battery_icon.i75
 i75-convert-image raw_images/house_icon.png 1 > images/house_icon.i75
 i75-convert-image raw_images/pylon_icon.png 1 > images/pylon_icon.i75
+i75-convert-image raw_images/christmas_wreath.jpeg 3 > images/christmas_wreath.i75
+
+for filename in raw_images/advent/*.jpeg; do
+    i75-convert-image $filename 3 > images/advent/$(basename $filename .jpeg).i75
+done

@@ -28,10 +28,10 @@ class Christmas:
 
     def render(self, i75: I75, frame_time: int) -> bool:
         self.total_time += frame_time
-        
+
         if self.rendered:
             return self.total_time > 30000
-        
+
         self.rendered = True
 
         red = Colour.fromrgb(255, 50, 50)
@@ -44,7 +44,12 @@ class Christmas:
             y = 10
             width, height = text_boundingbox(FONT, "happy", scale=2)
             number_offset_x = 32 - int(width / 2)
-            render_text(i75.display, FONT, number_offset_x, y, "happy", scale=2)
+            render_text(i75.display,
+                        FONT,
+                        number_offset_x,
+                        y,
+                        "happy",
+                        scale=2)
             y += height
 
             width, height = text_boundingbox(FONT, "new", scale=3)
@@ -61,7 +66,12 @@ class Christmas:
             y = 10
             width, height = text_boundingbox(FONT, str(days_to_go), scale=5)
             number_offset_x = 32 - int(width / 2)
-            render_text(i75.display, FONT, number_offset_x, y, str(days_to_go), scale=5)
+            render_text(i75.display,
+                        FONT,
+                        number_offset_x,
+                        y,
+                        str(days_to_go),
+                        scale=5)
             y += height
 
             width, height = text_boundingbox(FONT, "sleeps to go")
@@ -71,13 +81,17 @@ class Christmas:
             y = 10
             width, height = text_boundingbox(FONT, "merry", scale=2)
             number_offset_x = 32 - int(width / 2)
-            render_text(i75.display, FONT, number_offset_x, y, "merry", scale=2)
+            render_text(i75.display,
+                        FONT,
+                        number_offset_x,
+                        y,
+                        "merry",
+                        scale=2)
             y += height
 
             width, height = text_boundingbox(FONT, "christmas")
             sleeps_offset_x = 32 - int(width / 2)
             render_text(i75.display, FONT, sleeps_offset_x, y, "christmas")
-        
 
         i75.display.update()
 

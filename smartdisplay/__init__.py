@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from .advent import Advent
 from .balls import BouncingBalls
 from .blackout import Blackout
 from .clock import Clock
@@ -25,4 +26,4 @@ from .sentry import SentryClient
 from .solar import Solar
 from .sonos import Sonos
 from .trains import Trains
-from .water_gas import WaterGas 
+from .water_gas import WaterGas

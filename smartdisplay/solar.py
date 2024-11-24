@@ -170,7 +170,7 @@ class Solar:
                     20,
                     2 + font_height * 4,
                     pv_power)
-        
+
         pwr_width, _ = text_boundingbox(FONT, current_power)
         gen_width, _ = text_boundingbox(FONT, pv_generation)
         render_text(i75.display,

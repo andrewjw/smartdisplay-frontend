@@ -55,7 +55,7 @@ class WaterGas:
                     10,
                     10,
                     f"{self.data['water_day']:0.0f}L")
-        
+
         render_text(i75.display,
                     FONT,
                     10,
