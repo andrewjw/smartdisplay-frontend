@@ -56,6 +56,7 @@ IMAGE = bytearray(64 * 64 * 3)
 def get_screen_obj(i75: I75, screen_name: str):
     global BALLS
     print("Next screen", screen_name)
+    screen_name = "advent"
     if screen_name == "blackout":
         return Blackout()
     if screen_name == "sonos":
@@ -83,7 +84,7 @@ def get_screen_obj(i75: I75, screen_name: str):
     if screen_name == "christmas":
         return Christmas(i75)
     if screen_name == "advent":
-        return Advent(i75, IMAGE)
+        return Advent(i75, BACKEND, IMAGE)
     return Clock(i75)
 
 

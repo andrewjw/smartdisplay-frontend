@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import urequests
 
 from i75 import Date, Colour, I75, Image, render_text, text_boundingbox
 
@@ -22,18 +23,29 @@ FONT = "cg_pixel_3x5_5"
 
 
 class Advent:
-    def __init__(self, i75: I75, image: bytearray) -> None:
+    def __init__(self, i75: I75, backend: str, image: bytearray) -> None:
+        self.backend = backend
         self.total_time = 0
         self.rendered = False
         self.opened = 64
         self.image = image
+        self.state = 1
 
     def render(self, i75: I75, frame_time: int) -> bool:
-        self.total_time += frame_time
-
         if self.rendered:
-            if self.total_time > 5000 and self.opened > 0:
-                to_open = round(64 - 64 * (self.total_time - 5000) / 5000)
+            if self.state == 1:
+                self.state = 2
+                return False
+            if self.state == 2:
+                self.total_time += frame_time
+                if self.total_time > 10000:
+                    self.total_time = 0
+                    self.state = 3
+                return False
+            if self.state == 3:
+                self.total_time += frame_time
+                to_open = round(64 - 64 * self.total_time / 5000)
+                to_open = max(to_open, self.opened - 5)
                 for y in range(64):
                     for x in range(to_open, self.opened):
                         Colour.fromrgb(self.image[(y * 64 + x) * 3],
@@ -43,7 +55,14 @@ class Advent:
                         i75.display.pixel(x, y)
                 self.opened = to_open
                 i75.display.update()
-            return self.total_time > 30000
+                if self.opened == 0:
+                    self.total_time = 0
+                    self.state = 4
+                return False
+            if self.state == 4:
+                self.total_time += frame_time
+                return self.total_time >= 15000
+            raise ValueError(f"Invalid state {self.state}")
 
         self.rendered = True
 
@@ -59,7 +78,6 @@ class Advent:
                 i75.display.pixel(x, y)
 
         today = i75.now().date()
-        today = Date(2024, 12, 2)
 
         Colour.fromrgb(0, 0, 255).set_colour(i75)
 
@@ -68,8 +86,11 @@ class Advent:
 
         i75.display.update()
 
-        Image.load_into_buffer(open(f"images/advent/{today.day:02d}.i75",
-                                    "rb"),
-                               self.image)
+        try:
+            r = urequests.get(f"http://{self.backend}:6001/image?file=advent/{today.day:02d}.png",
+                                stream=True)
+            r.raw.readinto(self.image)
+        finally:
+            r.close()
 
         return False
