@@ -143,9 +143,10 @@ class Christmas:
                                        scale=5)
             y += height
 
-            width, height = text_boundingbox(FONT, "sleeps to go")
+            text = "sleeps to go" if days_to_go > 1 else "sleep to go"
+            width, height = text_boundingbox(FONT, text)
             sleeps_offset_x = 32 - int(width / 2)
-            self.render_text_to_buffer(i75, sleeps_offset_x, y, "sleeps to go")
+            self.render_text_to_buffer(i75, sleeps_offset_x, y, text)
         elif today >= christmas:
             y = 10
             width, height = text_boundingbox(FONT, "merry", scale=2)
