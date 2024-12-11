@@ -20,3 +20,5 @@ i75-convert-image raw_images/house_icon.png 1 > images/house_icon.i75
 i75-convert-image raw_images/pylon_icon.png 1 > images/pylon_icon.i75
 i75-convert-image raw_images/christmas_wreath.png 3 > images/christmas_wreath.i75
 i75-convert-image raw_images/snowflake.png 1 > images/snowflake.i75
+i75-convert-image raw_images/tap.png 3 > images/tap.i75
+i75-convert-image raw_images/flame.png 3 > images/flame.i75

@@ -22,7 +22,7 @@ except ImportError:
     pass
 import urequests
 
-from i75 import I75, Image, render_text, text_boundingbox
+from i75 import I75, ThreeColourImage, render_text, text_boundingbox
 
 FONT = "cg_pixel_3x5_5"
 
@@ -53,26 +53,49 @@ class WaterGas:
         render_text(i75.display,
                     FONT,
                     10,
+                    6,
+                    "Water")
+
+        render_text(i75.display,
+                    FONT,
                     10,
+                    14,
                     f"{self.data['water_day']:0.0f}L")
 
         render_text(i75.display,
                     FONT,
                     10,
-                    20,
+                    22,
                     f"£{self.data['water_cost']:0.2f}")
 
         render_text(i75.display,
                     FONT,
-                    10,
-                    30,
-                    f"{self.data['gas_day']:0.2f}m3")
+                    33,
+                    37,
+                    "Gas")
+
+        width, _ = text_boundingbox(FONT, f"{self.data['gas_day']:0.2f}m")
+        render_text(i75.display,
+                    FONT,
+                    33,
+                    45,
+                    f"{self.data['gas_day']:0.2f}m")
+        
+        render_text(i75.display,
+                    FONT,
+                    33 + width,
+                    43,
+                    "3")
 
         render_text(i75.display,
                     FONT,
-                    10,
-                    40,
+                    33,
+                    53,
                     f"£{self.data['gas_cost']:0.2f}")
+
+        ThreeColourImage.render_from_file(open("images/tap.i75", "rb"), i75.display, 35, 5)
+
+        ThreeColourImage.render_from_file(open("images/flame.i75", "rb"), i75.display, 5, 35)
 
         i75.display.update()
         self.rendered = True
