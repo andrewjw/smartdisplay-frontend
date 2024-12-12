@@ -1,4 +1,4 @@
-i75==1.16.0
+i75==1.17.0
 pycodestyle==2.12.1
 mypy==1.13.0
 types-requests==2.32.0.20241016
