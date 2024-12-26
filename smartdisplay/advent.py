@@ -30,8 +30,11 @@ class Advent:
         self.opened = 64
         self.image = image
         self.state = 1
+        self.image_count = 1
 
     def render(self, i75: I75, frame_time: int) -> bool:
+        day = i75.now().date().day
+
         if self.rendered:
             if self.state == 1:
                 self.state = 2
@@ -45,7 +48,7 @@ class Advent:
             if self.state == 3:
                 self.total_time += frame_time
                 to_open = round(64 - 64 * self.total_time / 5000)
-                to_open = max(to_open, self.opened - 5)
+                to_open = max(to_open, self.opened - 5, 0)
                 for y in range(64):
                     for x in range(to_open, self.opened):
                         Colour.fromrgb(self.image[(y * 64 + x) * 3],
@@ -59,9 +62,23 @@ class Advent:
                     self.total_time = 0
                     self.state = 4
                 return False
-            if self.state == 4:
+            if self.state == 4 and day < 26:
                 self.total_time += frame_time
                 return self.total_time >= 15000
+            if self.state == 4 and self.image_count == 25:
+                self.total_time += frame_time
+                return self.total_time >= 15000
+            if self.state == 4:
+                self.image_count += 1
+                try:
+                    r = urequests.get(f"http://{self.backend}:6001/image?file=advent/{self.image_count:02d}.png",
+                                        stream=True, timeout=10)
+                    r.raw.readinto(self.image)
+                finally:
+                    r.close()
+                self.state = 3
+                self.opened = 64
+                return False
             raise ValueError(f"Invalid state {self.state}")
 
         self.rendered = True
@@ -77,18 +94,18 @@ class Advent:
                                  | 255).set_colour(i75)
                 i75.display.pixel(x, y)
 
-        today = i75.now().date()
-
         Colour.fromrgb(0, 0, 255).set_colour(i75)
 
-        _, height = text_boundingbox(FONT, str(today.day), scale=4)
-        render_text(i75.display, FONT, 4, 64 - height, str(today.day), scale=4)
+        if day < 26:
+            _, height = text_boundingbox(FONT, str(day), scale=4)
+            render_text(i75.display, FONT, 4, 64 - height, str(day), scale=4)
 
         i75.display.update()
 
         try:
-            r = urequests.get(f"http://{self.backend}:6001/image?file=advent/{today.day:02d}.png",
-                                stream=True)
+            image_day = day if day < 26 else 1
+            r = urequests.get(f"http://{self.backend}:6001/image?file=advent/{image_day:02d}.png",
+                                stream=True, timeout=10)
             r.raw.readinto(self.image)
         finally:
             r.close()
