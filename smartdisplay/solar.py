@@ -36,7 +36,7 @@ class Solar:
         self.total_time = 0
         self.offset = 0
 
-        r = urequests.get(f"http://{backend}:6001/solar")
+        r = urequests.get(f"http://{backend}:6001/solar", timeout=10)
         try:
             self.data = r.json()
         finally:

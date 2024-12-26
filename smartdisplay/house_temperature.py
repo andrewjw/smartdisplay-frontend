@@ -55,7 +55,7 @@ class HouseTemperature:
         self.rendered = False
         self.total_time = 0
 
-        r = urequests.get(f"http://{backend}:6001/house_temperature")
+        r = urequests.get(f"http://{backend}:6001/house_temperature", timeout=10)
         try:
             self.data = r.json()
         finally:

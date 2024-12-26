@@ -50,9 +50,9 @@ def get_exception_str(exception: Exception) -> str:
 
 def http_request(domain, url, data, headers=()) -> str:
     if data:
-        r = urequests.post(domain + url, data=data, headers=headers)
+        r = urequests.post(domain + url, data=data, headers=headers, timeout=10)
     else:
-        r = urequests.get(domain + url, headers=headers)
+        r = urequests.get(domain + url, headers=headers, timeout=10)
 
     return r.text
 

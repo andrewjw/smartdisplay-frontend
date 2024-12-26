@@ -41,7 +41,7 @@ SENTRY_CLIENT = SentryClient(SENTRY_INGEST, SENTRY_PROJECT_ID, SENTRY_KEY)
 
 def get_next_screen(current: str) -> str:
     print("Getting next screen")
-    r = urequests.get(f"http://{BACKEND}:6001/next_screen?current={current}")
+    r = urequests.get(f"http://{BACKEND}:6001/next_screen?current={current}", timeout=10)
     try:
         return r.json()
     finally:

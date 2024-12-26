@@ -39,7 +39,7 @@ class CurrentWeather:
         self.total_time = 0
         self.image = image
 
-        r = urequests.get(f"http://{backend}:6001/current_weather")
+        r = urequests.get(f"http://{backend}:6001/current_weather", timeout=10)
         try:
             self.data = r.json()
         finally:

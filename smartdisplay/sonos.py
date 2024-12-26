@@ -32,7 +32,7 @@ class Sonos:
         self.quick = quick
 
     def render_art(self, i75: I75) -> bool:
-        r = urequests.get(f"http://{self.backend}:6001/sonos")
+        r = urequests.get(f"http://{self.backend}:6001/sonos", timeout=10)
         try:
             self.track_info = r.json()
         finally:
@@ -43,7 +43,7 @@ class Sonos:
 
         try:
             r = urequests.get(f"http://{self.backend}:6001/sonos/art",
-                              stream=True)
+                              stream=True, timeout=10)
             r.raw.readinto(self.image)
         finally:
             r.close()

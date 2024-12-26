@@ -11,7 +11,7 @@ class Trains:
     def __init__(self, backend: str, departures: bool) -> None:
         self.departures = departures
         r = urequests.get(f"http://{backend}:6001/trains_"
-                          + f"{'to' if departures else 'from'}_london")
+                          + f"{'to' if departures else 'from'}_london", timeout=10)
         try:
             data = r.json()
         finally:
