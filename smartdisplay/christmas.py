@@ -16,6 +16,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import random
+try:
+    from typing import List, Optional, Tuple, cast
+except ImportError:
+    def cast(_, y):  # type:ignore
+        return y
 
 from i75 import Date, Colour, I75, Image, render_text, text_boundingbox
 from i75.image import SingleColourImage
@@ -28,7 +33,7 @@ FONT = "cg_pixel_3x5_5"
 class Snowflake:
     def __init__(self, colour: Colour, image: SingleColourImage) -> None:
         self.pos = (random.randint(10, 55), random.randint(0, 60))
-        self.move_to = None
+        self.move_to: Optional[Tuple[int, int]] = None
         self.colour = colour
         self.image = image
 
@@ -84,8 +89,8 @@ class Christmas:
         self.red = Colour.fromrgb(255, 50, 50)
         self.white = Colour.fromrgb(255, 255, 255)
         self.black = Colour.fromrgb(0, 0, 0)
-        snowflake_image = Image.load(open("images/snowflake.i75", "rb"))
-        self.snowflakes = []
+        snowflake_image = cast(SingleColourImage, Image.load(open("images/snowflake.i75", "rb")))
+        self.snowflakes: List[Snowflake] = []
         for _ in range(8):
             self.snowflakes.append(Snowflake(self.white, snowflake_image))
 
@@ -160,7 +165,7 @@ class Christmas:
 
             width, height = text_boundingbox(FONT, "christmas")
             sleeps_offset_x = 32 - int(width / 2)
-            render_text(i75.display, FONT, sleeps_offset_x, y, "christmas")
+            self.render_text_to_buffer(i75, sleeps_offset_x, y, "christmas")
 
         for snowflake in self.snowflakes:
             snowflake.render(i75)
