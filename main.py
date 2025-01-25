@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import errno
 import gc
 import picographics
 from i75 import Colour, I75
@@ -41,7 +42,12 @@ SENTRY_CLIENT = SentryClient(SENTRY_INGEST, SENTRY_PROJECT_ID, SENTRY_KEY)
 
 def get_next_screen(current: str) -> str:
     print("Getting next screen")
-    r = urequests.get(f"http://{BACKEND}:6001/next_screen?current={current}", timeout=10)
+    try:
+        r = urequests.get(f"http://{BACKEND}:6001/next_screen?current={current}", timeout=10)
+    except OSError as e:
+        if e.errno == errno.ETIMEDOUT:
+            return "clock"
+        raise
     try:
         return r.json()
     finally:
