@@ -22,17 +22,24 @@ except ImportError:
     pass
 import urequests
 
-from i75 import I75, ThreeColourImage, render_text, text_boundingbox
+from i75 import Colour, I75, ThreeColourImage, ScreenManager, render_text, text_boundingbox
+from i75.screens.layers import Layers
+from i75.screens.offset import Offset
+from i75.screens.single_bit_screen import SingleBitScreen
 
-FONT = "cg_pixel_3x5_5"
+from .font import FONT
 
 LIGHT_GAP = 4
 
 
 class WaterGas:
-    def __init__(self, backend: str) -> None:
+    def __init__(self, backend: str, manager: ScreenManager) -> None:
         self.rendered = False
         self.total_time = 0
+
+        self.screen = SingleBitScreen(64, 64, Colour.fromrgb(255, 255, 255))
+        self.layers = Layers(Colour.fromrgb(0, 0, 0), [self.screen])
+        manager.set_screen(self.layers)
 
         r = urequests.get(f"http://{backend}:6001/water_gas", timeout=10)
         try:
@@ -46,58 +53,57 @@ class WaterGas:
         if self.rendered:
             return self.total_time > 30000
 
-        white = i75.display.create_pen(255, 255, 255)
-
-        i75.display.set_pen(white)
-
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     10,
-                    6,
+                    4,
                     "Water")
 
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     10,
-                    14,
+                    11,
                     f"{self.data['water_day']:0.0f}L")
 
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     10,
-                    22,
+                    18,
                     f"£{self.data['water_cost']:0.2f}")
 
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     33,
-                    37,
+                    33,
                     "Gas")
 
         width, _ = text_boundingbox(FONT, f"{self.data['gas_day']:0.2f}m")
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     33,
-                    45,
+                    41,
                     f"{self.data['gas_day']:0.2f}m")
         
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     33 + width,
-                    43,
+                    39,
                     "3")
 
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     33,
-                    53,
+                    49,
                     f"£{self.data['gas_cost']:0.2f}")
 
-        ThreeColourImage.render_from_file(open("images/tap.i75", "rb"), i75.display, 35, 5)
+        tap = ThreeColourImage.load(open("images/tap.i75", "rb"))
 
-        ThreeColourImage.render_from_file(open("images/flame.i75", "rb"), i75.display, 5, 35)
+        self.layers.add_layer(Offset(35, 5, tap))
 
-        i75.display.update()
+        flame = ThreeColourImage.load(open("images/flame.i75", "rb"))
+
+        self.layers.add_layer(Offset(5, 35, flame))
+
         self.rendered = True
 
         return False

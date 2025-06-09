@@ -18,7 +18,7 @@
 import errno
 import gc
 import picographics
-from i75 import Colour, I75
+from i75 import Colour, I75, ScreenManager
 try:
     from typing import Optional
 except ImportError:
@@ -59,38 +59,37 @@ BALLS: Optional[BouncingBalls] = None
 IMAGE = bytearray(64 * 64 * 3)
 
 
-def get_screen_obj(i75: I75, screen_name: str):
+def get_screen_obj(i75: I75, manager: ScreenManager, screen_name: str):
     global BALLS
-    print("Next screen", screen_name)
     if screen_name == "blackout":
-        return Blackout()
+        return Blackout(manager)
     if screen_name == "sonos":
         return Sonos(BACKEND, IMAGE, False)
     if screen_name == "sonos_quick":
         return Sonos(BACKEND, IMAGE, True)
     if screen_name == "balls":
         if BALLS is None:
-            BALLS = BouncingBalls(i75)
+            BALLS = BouncingBalls(i75, manager)
         else:
             BALLS.reset_timer()
         return BALLS
     if screen_name == "trains_to_london":
-        return Trains(BACKEND, True)
+        return Trains(BACKEND, manager, True)
     if screen_name == "trains_home":
-        return Trains(BACKEND, False)
+        return Trains(BACKEND, manager, False)
     if screen_name == "house_temperature":
-        return HouseTemperature(BACKEND)
+        return HouseTemperature(BACKEND, manager)
     if screen_name == "current_weather":
-        return CurrentWeather(BACKEND, IMAGE)
+        return CurrentWeather(BACKEND, manager)
     if screen_name == "solar":
-        return Solar(BACKEND)
+        return Solar(BACKEND, manager)
     if screen_name == "water_gas":
-        return WaterGas(BACKEND)
-    if screen_name == "christmas":
-        return Christmas(i75)
-    if screen_name == "advent":
-        return Advent(i75, BACKEND, IMAGE)
-    return Clock(i75)
+        return WaterGas(BACKEND, manager)
+    # if screen_name == "christmas":
+    #     return Christmas(i75)
+    # if screen_name == "advent":
+    #     return Advent(i75, BACKEND, IMAGE)
+    return Clock(i75, manager)
 
 
 def main() -> None:
@@ -111,11 +110,11 @@ def main() -> None:
 
     next_ntp = i75.now().hour + 23
 
+    manager = ScreenManager(64, 64, i75.display)
+
     ticks = i75.ticks_ms()
     screen = get_next_screen("first")
-    screen_obj = get_screen_obj(i75, screen)
-
-    black = i75.display.create_pen(0, 0, 0)
+    screen_obj = get_screen_obj(i75, manager, screen)
 
     while True:
         new_ticks = i75.ticks_ms()
@@ -135,18 +134,18 @@ def main() -> None:
                 next_ntp = now.hour + 23
 
             screen = get_next_screen(screen)
-            screen_obj = get_screen_obj(i75, screen)
+            screen_obj = get_screen_obj(i75, manager, screen)
 
             gc.collect()
             log(f"Free memory: {gc.mem_free()}\n")
 
-            i75.display.set_pen(black)
-            i75.display.fill(0, 0, 64, 64)
+        manager.update(frame_time)
 
 
 def main_safe():
     while True:
         try:
+            print("starting main")
             main()
         except KeyboardInterrupt:
             break

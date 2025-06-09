@@ -1,4 +1,4 @@
-i75==1.17.0
+i75==git+http://github.com/andrewjw/i75.git@screen_classes
 pycodestyle==2.12.1
 mypy==1.13.0
 types-requests==2.32.0.20241016

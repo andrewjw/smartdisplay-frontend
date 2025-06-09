@@ -32,6 +32,7 @@ class Sonos:
         self.quick = quick
 
     def render_art(self, i75: I75) -> bool:
+        print("render")
         r = urequests.get(f"http://{self.backend}:6001/sonos", timeout=10)
         try:
             self.track_info = r.json()

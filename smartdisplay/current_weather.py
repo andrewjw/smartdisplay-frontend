@@ -22,11 +22,14 @@ except ImportError:
     pass
 import urequests
 
-from i75 import I75, Image, render_text, text_boundingbox
+from i75 import Colour, I75, ThreeColourImage, ScreenManager, render_text, text_boundingbox
+from i75.screens.colour_block import ColourBlock
+from i75.screens.indexed_colour_screen import IndexedColourScreen
+from i75.screens.layers import Layers
+from i75.screens.offset import Offset
 
+from .font import FONT
 from .utils import render_image_with_fade
-
-FONT = "cg_pixel_3x5_5"
 
 TITLE = "Weather"
 
@@ -34,10 +37,13 @@ MPH = 2.23694
 
 
 class CurrentWeather:
-    def __init__(self, backend: str, image: bytearray) -> None:
+    def __init__(self, backend: str, manager: ScreenManager) -> None:
         self.rendered = False
         self.total_time = 0
-        self.image = image
+
+        self.layers = Layers(Colour.fromrgb(0, 0, 0), [])
+
+        manager.set_screen(self.layers)
 
         r = urequests.get(f"http://{backend}:6001/current_weather", timeout=10)
         try:
@@ -51,71 +57,86 @@ class CurrentWeather:
         if self.rendered:
             return self.total_time > 30000
 
-        white = i75.display.create_pen(255, 255, 255)
-        blue = i75.display.create_pen(0, 0, 255)
-        green = i75.display.create_pen(0, 255, 0)
-        yellow = i75.display.create_pen(255, 255, 0)
-        orange = i75.display.create_pen(255, 165, 0)
-        red = i75.display.create_pen(255, 0, 0)
-        violet = i75.display.create_pen(127, 0, 255)
+        text_screen = IndexedColourScreen(64, 64, {
+            0: Colour.fromrgba(0, 0, 0, 0),
+            1: Colour.fromrgb(255, 255, 255),  # white
+            2: Colour.fromrgb(0, 0, 255),  # blue
+            3: Colour.fromrgb(0, 255, 0),  # green
+            4: Colour.fromrgb(255, 255, 0),  # yellow
+            5: Colour.fromrgb(255, 165, 0),  # orange
+            6: Colour.fromrgb(255, 0, 0),  # red
+            7: Colour.fromrgb(127, 0, 255)  # violet
+        })
+
+        white = 1
+        blue = 2
+        green = 3
+        yellow = 4
+        orange = 5
+        red = 6
+        violet = 7
 
         if self.data['rain_20m'] >= 0.2:
-            image_file = "images/rainy.i75"
+            image = ThreeColourImage.load(open("images/rainy.i75", "rb"))
         elif self.data['temperature'] > 28:
-            image_file = "images/hot.i75"
+            image = ThreeColourImage.load(open("images/hot.i75", "rb"))
         elif self.data['temperature'] < 2:
-            image_file = "images/cold.i75"
+            image = ThreeColourImage.load(open("images/cold.i75", "rb"))
         elif self.data['lux'] < 10:
-            image_file = "images/night.i75"
+            image = ThreeColourImage.load(open("images/night.i75", "rb"))
         elif self.data['lux'] < 2500:
-            image_file = "images/sunrise.i75"
+            image = ThreeColourImage.load(open("images/sunrise.i75", "rb"))
         elif self.data['lux'] > 50000:
-            image_file = "images/sunny.i75"
+            image = ThreeColourImage.load(open("images/sunny.i75", "rb"))
         else:
-            image_file = "images/cloudy.i75"
+            image = ThreeColourImage.load(open("images/cloudy.i75", "rb"))
 
-        img = Image.load_into_buffer(open(image_file, "rb"), self.image)
+        self.layers.add_layer(image)
 
-        render_image_with_fade(i75, img, 2, 0.5)
+        self.layers.add_layer(
+            Offset(2, 2, ColourBlock(60, 60, Colour.fromrgba(0, 0, 0, 128)))
+        )
 
-        i75.display.set_pen(white)
+        self.layers.add_layer(text_screen)
+
         title_width, font_height = text_boundingbox(FONT, TITLE)
-        render_text(i75.display,
+        render_text(text_screen,
                     FONT,
                     math.floor(32 - title_width / 2),
-                    3,
-                    TITLE)
+                    1,
+                    TITLE,
+                    white)
 
-        y = font_height + 4
+        y = font_height
 
-        i75.display.set_pen(blue if self.data['temperature'] < 2 else
-                            (red if self.data['temperature'] > 28 else
-                            (yellow if self.data['temperature'] > 24
-                             else white)))
+        colour = (blue if self.data['temperature'] < 2 else
+                  (red if self.data['temperature'] > 28 else
+                   (yellow if self.data['temperature'] > 24
+                    else white)))
 
         temp_str = f"{self.data['temperature']:.1f}"
         temp_width, _ = text_boundingbox(FONT, temp_str)
-        render_text(i75.display, FONT, 10, y, temp_str)
+        render_text(text_screen, FONT, 10, y, temp_str, colour)
         temp_width += 10
 
         for i in range(3):
-            i75.display.pixel(temp_width + i, y)
-            i75.display.pixel(temp_width + 2 - i, y + 2)
-            i75.display.pixel(temp_width, y + i)
-            i75.display.pixel(temp_width + 2, y + 2 - i)
+            text_screen.set_pixel(temp_width + i, y + 1, white)
+            text_screen.set_pixel(temp_width + 2 - i, y + 3, white)
+            text_screen.set_pixel(temp_width, y + i + 1, white)
+            text_screen.set_pixel(temp_width + 2, y + 3 - i, white)
 
-        render_text(i75.display,
+        render_text(text_screen,
                     FONT,
                     temp_width + 4,
                     y,
-                    "C")
+                    "C",
+                    white)
 
-        i75.display.set_pen(white)
         hum_str = f"{self.data['humidity']:.0f}%"
         hum_width, _ = text_boundingbox(FONT, hum_str)
-        render_text(i75.display, FONT, 54 - hum_width, y, hum_str)
+        render_text(text_screen, FONT, 54 - hum_width, y, hum_str, white)
 
-        y += 1 + font_height
+        y += font_height - 1
 
         rain, _ = text_boundingbox(FONT, "Rain: ")
         gust, _ = text_boundingbox(FONT, "Gust: ")
@@ -134,87 +155,91 @@ class CurrentWeather:
 
         rain_dot_max = max(rain_24h_prefix, rain_1h_prefix, 5)
 
-        render_text(i75.display,
+        render_text(text_screen,
                     FONT,
                     (max_prefix - rain) + 2,
                     y,
-                    "Rain: 24h:")
-        render_text(i75.display,
+                    "Rain: 24h:",
+                    white)
+        render_text(text_screen,
                     FONT,
                     max_prefix + rain_24h + 2 + rain_dot_max - rain_24h_prefix,
                     y,
-                    rain_24h_str)
-        y += font_height
-        render_text(i75.display,
+                    rain_24h_str,
+                    white)
+        y += font_height - 2
+        render_text(text_screen,
                     FONT,
                     (max_prefix + rain_24h - rain_1h) + 2,
                     y,
-                    "1h:")
-        render_text(i75.display,
+                    "1h:",
+                    white)
+        render_text(text_screen,
                     FONT,
                     (max_prefix + rain_24h - rain_1h) + 2
                     + rain_1h + rain_dot_max - rain_1h_prefix,
                     y,
-                    rain_1h_str)
+                    rain_1h_str,
+                    white)
 
-        y += 1 + font_height
+        y += font_height - 2
         wind_str = \
             f"Gust: {self.data['gust']*MPH:.0f}mph  {self.data['winddir']}"
-        render_text(i75.display, FONT, (max_prefix - gust) + 2, y, wind_str)
+        render_text(text_screen, FONT, (max_prefix - gust) + 2, y, wind_str, white)
 
-        y += font_height
+        y += font_height - 2
         wind_str = f"Avg: {self.data['wind']*MPH:.0f}mph"
-        render_text(i75.display, FONT, (max_prefix - avg) + 2, y, wind_str)
+        render_text(text_screen, FONT, (max_prefix - avg) + 2, y, wind_str, white)
 
-        y += 1 + font_height
-        pressure_str = f"{self.data['pressure']:.1f}HPA "
+        y += font_height - 1
+        pressure_str = f"{self.data['pressure']:.1f}hPa "
         pressure, _ = text_boundingbox(FONT, pressure_str)
         pressure_start = math.floor(32 - pressure / 2)
-        render_text(i75.display, FONT, pressure_start, y, pressure_str)
+        render_text(text_screen, FONT, pressure_start, y, pressure_str, white)
 
         if self.data['pressure_change'] == "increasing":
             for iy in range(y, y + 5):
-                i75.display.pixel(pressure_start + pressure + 2, iy)
-            i75.display.pixel(pressure_start + pressure + 1, y + 1)
-            i75.display.pixel(pressure_start + pressure + 3, y + 1)
-            i75.display.pixel(pressure_start + pressure, y + 2)
-            i75.display.pixel(pressure_start + pressure + 4, y + 2)
+                text_screen.set_pixel(pressure_start + pressure + 2, iy + 2, white)
+            text_screen.set_pixel(pressure_start + pressure + 1, y + 3, white)
+            text_screen.set_pixel(pressure_start + pressure + 3, y + 3, white)
+            text_screen.set_pixel(pressure_start + pressure, y + 4, white)
+            text_screen.set_pixel(pressure_start + pressure + 4, y + 4, white)
         if self.data['pressure_change'] == "decreasing":
             for iy in range(y, y + 5):
-                i75.display.pixel(pressure_start + pressure + 2, iy)
-            i75.display.pixel(pressure_start + pressure + 1, iy - 1)
-            i75.display.pixel(pressure_start + pressure + 3, iy - 1)
-            i75.display.pixel(pressure_start + pressure, iy - 2)
-            i75.display.pixel(pressure_start + pressure + 4, iy - 2)
+                text_screen.set_pixel(pressure_start + pressure + 2, iy + 2, white)
+            text_screen.set_pixel(pressure_start + pressure + 1, iy + 1, white)
+            text_screen.set_pixel(pressure_start + pressure + 3, iy + 1, white)
+            text_screen.set_pixel(pressure_start + pressure, iy, white)
+            text_screen.set_pixel(pressure_start + pressure + 4, iy, white)
         if self.data['pressure_change'] == "level":
             for ix in range(-2, 2):
-                i75.display.pixel(pressure_start + pressure + 2 + ix, y + 2)
+                text_screen.set_pixel(pressure_start + pressure + 2 + ix, y + 4, white)
 
-        y += font_height
+        y += font_height - 1
         pt_width, _ = text_boundingbox(FONT, self.data['pressure_text'])
-        render_text(i75.display,
+        render_text(text_screen,
                     FONT,
                     math.floor(32 - pt_width / 2),
                     y,
-                    self.data['pressure_text'])
+                    self.data['pressure_text'],
+                    white)
 
-        y += 1 + font_height
-        render_text(i75.display, FONT, (max_prefix - uvi) + 2, y, "UV:")
+        y += font_height - 1
+        render_text(text_screen, FONT, (max_prefix - uvi) + 2, y, "UV:", white)
 
         if self.data['uv'] <= 2:
-            i75.display.set_pen(green)
+            colour = green
         elif self.data['uv'] <= 5:
-            i75.display.set_pen(yellow)
+            colour = yellow
         elif self.data['uv'] <= 7:
-            i75.display.set_pen(orange)
+            colour = orange
         elif self.data['uv'] <= 10:
-            i75.display.set_pen(red)
+            colour = red
         else:
-            i75.display.set_pen(violet)
+            colour = violet
         uv_str = f"{self.data['uv']:.0f}"
-        render_text(i75.display, FONT, max_prefix + 2, y, uv_str)
+        render_text(text_screen, FONT, max_prefix + 2, y, uv_str, colour)
 
-        i75.display.update()
         self.rendered = True
 
         return False

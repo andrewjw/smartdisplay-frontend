@@ -15,15 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from i75 import Colour, I75
-from i75.screens.single_colour import SingleColour
+from i75 import Face, Font
 
-class Blackout:
-    def __init__(self, manager) -> None:
-        self.total_time = 0
-
-        manager.set_screen(SingleColour(Colour.fromrgb(0, 0, 0)))
-
-    def render(self, i75: I75, frame_time: int) -> bool:
-        self.total_time += frame_time
-        return self.total_time >= 60000
+FONT = Font(Face.load_face("tiny5.af"), 7)

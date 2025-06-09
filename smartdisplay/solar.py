@@ -22,19 +22,51 @@ except ImportError:
     pass
 import urequests
 
-from i75 import I75, Image, render_text, text_boundingbox
+from i75 import Colour, I75, SingleColourImage, ScreenManager, render_text, text_boundingbox, line
+from i75.screens.indexed_colour_screen import IndexedColourScreen
+from i75.screens.layers import Layers
+from i75.screens.offset import Offset
 
-FONT = "cg_pixel_3x5_5"
+from .font import FONT
 
 LIGHT_GAP = 4
 
 
 class Solar:
-    def __init__(self, backend: str) -> None:
+    def __init__(self, backend: str, manager: ScreenManager) -> None:
         self.rendered = False
         self.frame_time = 0
         self.total_time = 0
         self.offset = 0
+
+        self.screen = IndexedColourScreen(64, 64, {
+            0: Colour.fromrgb(0, 0, 0),
+            1: Colour.fromrgb(255, 255, 255),
+            2: Colour.fromrgb(168, 230, 29),  # Battery green
+            3: Colour.fromrgb(80, 110, 14),   # Battery dark green
+            4: Colour.fromrgb(255, 0, 0),     # Red
+            5: Colour.fromrgb(255, 255, 0),   # Yellow
+            6: Colour.fromrgb(180, 180, 180), # Grey
+        })
+
+        sun = SingleColourImage.load(open("images/sun_icon.i75", "rb"))
+        sun.set_colour(Colour.fromrgb(255, 255, 0))  # Yellow
+        sun_offset = Offset( 10, 7 * 4, sun)
+
+        pylon = SingleColourImage.load(open("images/pylon_icon.i75", "rb"))
+        pylon_offset = Offset(50, 11 + 7 * 6, pylon)
+
+        house = SingleColourImage.load(open("images/house_icon.i75", "rb"))
+        house_offset = Offset(30, 11 + 7 * 6, house)
+
+        manager.set_screen(
+            Layers(
+                Colour.fromrgb(0, 0, 0),
+                [self.screen,
+                sun_offset,
+                pylon_offset,
+                house_offset
+                ]))
 
         r = urequests.get(f"http://{backend}:6001/solar", timeout=10)
         try:
@@ -50,18 +82,15 @@ class Solar:
             if self.frame_time > 200:
                 self.frame_time = self.frame_time % 200
                 self.offset = (self.offset + 1) % LIGHT_GAP
-                self.render_lines(i75)
-                i75.display.update()
+                self.render_lines()
             return self.total_time > 30000
 
-        white = i75.display.create_pen(255, 255, 255)
-        yellow = i75.display.create_pen(255, 255, 0)
-        red = i75.display.create_pen(255, 0, 0)
-        green = i75.display.create_pen(0, 255, 0)
-        grey = i75.display.create_pen(180, 180, 180)
-        battery_green = i75.display.create_pen(168, 230, 29)
-
-        i75.display.set_pen(white)
+        white = 1
+        yellow = 5
+        red = 4
+        green = 2
+        grey = 6
+        battery_green = 3
 
         if self.data['battery_change'] > 500:
             battery_change_colour = green
@@ -112,12 +141,14 @@ class Solar:
             prefixes[prefix] = width
             if width + 1 > max_length:
                 max_length = width + 1
+        font_height = font_height - 1
 
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     max_length - prefixes["House"],
-                    1,
-                    "House:")
+                    -1,
+                    "House:",
+                    white)
         house_wh = f"{self.data['house_wh']/1000:0.1f}kwh"
         house_cost = f"£{self.data['house_cost']:0.2f}"
         car_wh = f"{self.data['car_wh']/1000:0.1f}kwh"
@@ -134,147 +165,139 @@ class Solar:
                             house_cost_pre_point,
                             car_wh_pre_point,
                             car_cost_pre_point)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     max_length + (max_pre_point - house_wh_pre_point),
-                    1,
-                    house_wh)
-        render_text(i75.display,
+                    -1,
+                    house_wh,
+                    white)
+        render_text(self.screen,
                     FONT,
                     max_length + (max_pre_point - house_cost_pre_point),
-                    1 + font_height,
-                    house_cost)
-        render_text(i75.display,
+                    font_height - 2,
+                    house_cost,
+                    white)
+        render_text(self.screen,
                     FONT,
                     max_length - prefixes["Car"],
-                    1 + font_height * 2,
-                    f"Car:")
-        render_text(i75.display,
+                    font_height * 2 - 3,
+                    f"Car:",
+                    white)
+        render_text(self.screen,
                     FONT,
                     max_length + (max_pre_point - car_wh_pre_point),
-                    1 + font_height * 2,
-                    car_wh)
-        render_text(i75.display,
+                    font_height * 2 - 3,
+                    car_wh,
+                    white)
+        render_text(self.screen,
                     FONT,
                     max_length + (max_pre_point - car_cost_pre_point),
-                    1 + font_height * 3,
-                    car_cost)
+                    font_height * 3 - 4,
+                    car_cost,
+                    white)
 
-        icon = Image.load(open("images/sun_icon.i75", "rb"))
-        icon.set_colour(255, 255, 0)
-        icon.render(i75.display, 10, font_height * 4)
-
-        i75.display.set_pen(pv_power_colour)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     20,
-                    2 + font_height * 4,
-                    pv_power)
+                    font_height * 4 - 5,
+                    pv_power,
+                    pv_power_colour)
 
-        pwr_width, _ = text_boundingbox(FONT, current_power)
-        gen_width, _ = text_boundingbox(FONT, pv_generation)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
-                    54 + round(pwr_width / 2.0) - gen_width,
-                    2 + font_height * 4,
-                    pv_generation)
+                    20,
+                    font_height * 5 - 6,
+                    pv_generation,
+                    white)
 
-        i75.display.set_pen(grey)
-        i75.display.line(10, 11 + font_height * 5, 15, 11 + font_height * 5)
-        i75.display.line(10, 11 + font_height * 5, 10, 19 + font_height * 5)
-        i75.display.line(15, 11 + font_height * 5, 15, 19 + font_height * 5)
-        i75.display.line(10, 19 + font_height * 5, 15, 19 + font_height * 5)
+        line(self.screen, 10, 11 + font_height * 5, 15, 11 + font_height * 5, grey)
+        line(self.screen, 10, 11 + font_height * 5, 10, 19 + font_height * 5, grey)
+        line(self.screen, 15, 11 + font_height * 5, 15, 19 + font_height * 5, grey)
+        line(self.screen, 10, 19 + font_height * 5, 15, 19 + font_height * 5, grey)
 
-        i75.display.set_pen(battery_green)
         for i in range(1, 8):
             if self.data['battery'] > i * 14:
-                i75.display.line(11,
-                                 19 + font_height * 5 - i,
-                                 14,
-                                 19 + font_height * 5 - i)
+                line(self.screen, 
+                     11,
+                     19 + font_height * 5 - i,
+                     14,
+                     19 + font_height * 5 - i,
+                     battery_green)
 
-        i75.display.set_pen(red if self.data['battery'] < 40 else (
+        colour = red if self.data['battery'] < 40 else (
             green if self.data['battery'] > 60 else yellow
-        ))
+        )
         perc_text = f"{self.data['battery']:0.0f}%"
         perc_width, _ = text_boundingbox(FONT, perc_text)
         charge_width, _ = text_boundingbox(FONT,
                                            battery_change)
         max_width = max(18, perc_width, charge_width)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     13 - round(perc_width / 2.0),
                     21 + font_height * 5,
-                    perc_text)
-        i75.display.set_pen(battery_change_colour)
-        render_text(i75.display,
+                    perc_text,
+                    colour)
+        render_text(self.screen,
                     FONT,
                     13 - round(charge_width / 2.0),
                     21 + font_height * 6,
-                    battery_change)
-
-        icon = Image.load(open("images/pylon_icon.i75", "rb"))
-        icon.render(i75.display, 50, 11 + font_height * 6)
+                    battery_change,
+                    battery_change_colour)
 
         text_width, _ = text_boundingbox(FONT, current_power)
-        i75.display.set_pen(current_power_colour)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     54 - round(text_width / 2.0),
                     21 + font_height * 6,
-                    current_power)
-
-        icon = Image.load(open("images/house_icon.i75", "rb"))
-        icon.render(i75.display, 30, 11 + font_height * 6)
+                    current_power,
+                    current_power_colour)
 
         text_width, _ = text_boundingbox(FONT, house_load)
-        i75.display.set_pen(house_load_colour)
-        render_text(i75.display,
+        render_text(self.screen,
                     FONT,
                     34 - round(text_width / 2.0),
                     21 + font_height * 6,
-                    house_load)
+                    house_load,
+                    house_load_colour)
 
-        self.render_lines(i75)
+        self.render_lines()
 
-        i75.display.update()
         self.rendered = True
 
         return False
 
-    def render_lines(self, i75: I75) -> None:
-        white = i75.display.create_pen(255, 255, 255)
-        light_green = i75.display.create_pen(168, 230, 29)
-        dark_green = i75.display.create_pen(80, 110, 14)
+    def render_lines(self) -> None:
+        white = 1
+        light_green = 2
+        dark_green = 3
 
         solar_on = self.data['pv_power'] >= 0.1
 
         # Solar output
-        self.vertical(13, 23 + 10, 23 + 12, i75,
+        self.vertical(13, 27 + 10, 27 + 12,
                       light_green if solar_on else white,
                       dark_green if solar_on else white, self.offset)
+
         # Battery output
         if self.data['battery_change'] <= -100:
             self.vertical(13,
-                          23 + 16,
-                          23 + 14,
-                          i75,
+                          27 + 16,
+                          27 + 14,
                           light_green,
                           dark_green,
                           self.offset)
         elif self.data['battery_change'] >= 100:
             self.vertical(13,
-                          23 + 14,
-                          23 + 16,
-                          i75,
+                          27 + 14,
+                          27 + 16,
                           light_green,
                           dark_green,
                           self.offset)
         else:
             self.vertical(13,
-                          23 + 14,
-                          23 + 16,
-                          i75,
+                          27 + 14,
+                          27 + 16,
                           white,
                           white,
                           self.offset)
@@ -283,24 +306,21 @@ class Solar:
         if pv_system <= -100:
             self.horizontal(32,
                             13,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             light_green,
                             dark_green,
                             (self.offset + 0) % LIGHT_GAP)
         elif pv_system >= 100:
             self.horizontal(13,
                             32,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             light_green,
                             dark_green,
                             (self.offset + 1) % LIGHT_GAP)
         else:
             self.horizontal(13,
                             32,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             white,
                             white,
                             self.offset)
@@ -308,55 +328,48 @@ class Solar:
         if self.data['current_power'] >= 100:
             # Grid up
             self.vertical(53,
-                          23 + 20,
-                          23 + 13,
-                          i75,
+                          27 + 20,
+                          27 + 13,
                           light_green,
                           dark_green,
                           self.offset)
             # House to grid
             self.horizontal(53,
                             34,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             light_green,
                             dark_green,
                             (self.offset + 1) % LIGHT_GAP)
         elif self.data['current_power'] <= -100:
             self.vertical(53,
-                          23 + 13,
-                          23 + 20,
-                          i75,
+                          27 + 13,
+                          27 + 20,
                           light_green,
                           dark_green,
                           (self.offset + 1) % LIGHT_GAP)
             self.horizontal(34,
                             53,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             light_green,
                             dark_green,
                             self.offset)
         else:
             self.vertical(53,
-                          23 + 13,
-                          23 + 20,
-                          i75,
+                          27 + 13,
+                          27 + 20,
                           white,
                           white,
                           self.offset)
             self.horizontal(34,
                             53,
-                            23 + 13,
-                            i75,
+                            27 + 13,
                             white,
                             white,
                             self.offset)
         # Down to house
         self.vertical(33,
-                      23 + 13,
-                      23 + 20,
-                      i75,
+                      27 + 13,
+                      27 + 20,
                       light_green,
                       dark_green,
                       (self.offset + 1) % LIGHT_GAP)
@@ -365,28 +378,22 @@ class Solar:
                    x1: int,
                    x2: int,
                    y1: int,
-                   i75: I75,
                    light,
                    dark,
                    offset: int) -> None:
         start = x1
         direction = 1 if x1 < x2 else -1
         for i in range(abs(x2 - x1) + 1):
-            i75.display.set_pen(
-                light if (i - offset) % LIGHT_GAP == 0 else dark)
-            i75.display.pixel(start + direction * i, y1)
+            self.screen.set_pixel(start + direction * i, y1, light if (i - offset) % LIGHT_GAP == 0 else dark)
 
     def vertical(self,
                  x1: int,
                  y1: int,
                  y2: int,
-                 i75: I75,
                  light,
                  dark,
                  offset: int) -> None:
         start = y1
         direction = 1 if y1 < y2 else -1
         for i in range(abs(y2 - y1) + 1):
-            i75.display.set_pen(
-                light if (i - offset) % LIGHT_GAP == 0 else dark)
-            i75.display.pixel(x1, start + direction * i)
+            self.screen.set_pixel(x1, start + direction * i, light if (i - offset) % LIGHT_GAP == 0 else dark)
